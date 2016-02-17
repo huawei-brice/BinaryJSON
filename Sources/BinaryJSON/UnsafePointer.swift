@@ -6,7 +6,6 @@
 //  Copyright © 2015 PureSwift. All rights reserved.
 //
 
-import SwiftFoundation
 import CBSON
 
 public extension BSON {
@@ -74,11 +73,11 @@ private extension BSON {
             case let .Double(value): return bson_append_double(documentPointer, key, keyLength, value)
             }
             
-        case let .Date(date):
-            
-            var time = timeval(timeInterval: date.timeIntervalSince1970)
-            
-            return bson_append_timeval(documentPointer, key, keyLength, &time)
+//        case let .Date(date):
+//            
+//            var time = timeval(timeInterval: date.timeIntervalSince1970)
+//            
+//            return bson_append_timeval(documentPointer, key, keyLength, &time)
             
         case let .Timestamp(timestamp):
             
@@ -297,15 +296,15 @@ private extension BSON {
                 
                 value = .Number(.Boolean(boolean))
                 
-            case BSON_TYPE_DATE_TIME:
-                
-                var time = timeval()
-                
-                bson_iter_timeval(&iterator, &time)
-                
-                let date = Date(timeIntervalSince1970: time.timeIntervalValue)
-                
-                value = .Date(date)
+//            case BSON_TYPE_DATE_TIME:
+//                
+//                var time = timeval()
+//                
+//                bson_iter_timeval(&iterator, &time)
+//                
+//                let date = Date(timeIntervalSince1970: time.timeIntervalValue)
+//                
+//                value = .Date(date)
                 
             case BSON_TYPE_NULL:
                 

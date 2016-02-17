@@ -6,10 +6,10 @@
 //  Copyright © 2015 PureSwift. All rights reserved.
 //
 
-import SwiftFoundation
-
 /// [Binary JSON](http://bsonspec.org)
 public struct BSON {
+    
+    class Null {}
     
     /// BSON Array
     public typealias Array = [BSON.Value]
@@ -28,9 +28,9 @@ public struct BSON {
         
         case Number(BSON.Number)
         
-        case String(StringValue)
+        case String(Swift.String)
         
-        case Date(DateValue)
+//        case Date(DateValue)
         
         case Timestamp(BSON.Timestamp)
         
@@ -77,7 +77,7 @@ public struct BSON {
         
         case Integer64(Int64)
         
-        case Double(DoubleValue)
+        case Double(Swift.Double)
     }
     
     public struct Binary: Equatable {
@@ -162,7 +162,7 @@ public extension BSON.Value {
         
         switch self {
             
-        case .Null: return SwiftFoundation.Null()
+        case .Null: return BSON.Null()
             
         case let .Array(array):
             
@@ -172,7 +172,7 @@ public extension BSON.Value {
             
         case let .Document(document):
             
-            var rawObject = [StringValue: Any]()
+            var rawObject: [Swift.String:Any] = [:]
             
             for (key, value) in document {
                 
@@ -183,7 +183,7 @@ public extension BSON.Value {
             
         case let .Number(number): return number.rawValue
             
-        case let .Date(date): return date
+//        case let .Date(date): return date
             
         case let .Timestamp(timestamp): return timestamp
             
@@ -203,7 +203,7 @@ public extension BSON.Value {
     
     init?(rawValue: Any) {
         
-        guard (rawValue as? SwiftFoundation.Null) == nil else {
+        guard (rawValue as? BSON.Null) == nil else {
             
             self = .Null
             return
@@ -221,11 +221,11 @@ public extension BSON.Value {
             return
         }
         
-        if let date = rawValue as? SwiftFoundation.Date {
-            
-            self = .Date(date)
-            return
-        }
+//        if let date = rawValue as? SwiftFoundation.Date {
+//            
+//            self = .Date(date)
+//            return
+//        }
         
         if let timestamp = rawValue as? BSON.Timestamp {
             
@@ -245,8 +245,13 @@ public extension BSON.Value {
             return
         }
         
-        if let rawArray = rawValue as? [Any], let jsonArray: [BSON.Value] = BSON.Value.fromRawValues(rawArray) {
+        if let rawArray = rawValue as? [Any] {
             
+            var jsonArray: [BSON.Value] = []
+            for val in rawArray {
+                guard let json = BSON.Value(rawValue: val) else { return nil }
+                jsonArray.append(json)
+            }
             self = .Array(jsonArray)
             return
         }
@@ -305,7 +310,7 @@ public extension BSON.Number {
         if let value = rawValue as? Bool            { self = .Boolean(value) }
         if let value = rawValue as? Int32           { self = .Integer32(value) }
         if let value = rawValue as? Int64           { self = .Integer64(value) }
-        if let value = rawValue as? DoubleValue     { self = .Double(value)  }
+        if let value = rawValue as? Swift.Double     { self = .Double(value)  }
         
         return nil
     }
@@ -339,7 +344,7 @@ public func ==(lhs: BSON.Value, rhs: BSON.Value) -> Bool {
         
     case let (.Document(leftValue), .Document(rightValue)): return leftValue == rightValue
         
-    case let (.Date(leftValue), .Date(rightValue)): return leftValue == rightValue
+//    case let (.Date(leftValue), .Date(rightValue)): return leftValue == rightValue
         
     case let (.Timestamp(leftValue), .Timestamp(rightValue)): return leftValue == rightValue
         
@@ -398,12 +403,4 @@ public func ==(lhs: BSON.RegularExpression, rhs: BSON.RegularExpression) -> Bool
     
     return lhs.pattern == rhs.pattern && lhs.options == rhs.options
 }
-
-// MARK: - Typealiases
-
-// Due to compiler error
-
-public typealias DataValue = Data
-
-public typealias DateValue = Date
 

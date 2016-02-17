@@ -6,7 +6,6 @@
 //  Copyright © 2015 PureSwift. All rights reserved.
 //
 
-import SwiftFoundation
 import CBSON
 
 public extension BSON {
@@ -43,4 +42,61 @@ public extension BSON {
             return document
         }
     }
+}
+
+/// Encapsulates data.
+public struct Data: ByteValueType, Equatable {
+    
+    public var byteValue: [Byte]
+    
+    public init(byteValue: [Byte] = []) {
+        
+        self.byteValue = byteValue
+    }
+}
+
+public typealias Byte = UInt8
+
+public extension Data {
+    
+    /// Initializes ```Data``` from an unsafe byte pointer.
+    ///
+    /// - Precondition: The pointer  points to a type exactly a byte long.
+    static func fromBytePointer<T: Any>(pointer: UnsafePointer<T>, length: Int) -> Data {
+        
+        assert(sizeof(pointer.memory.dynamicType) == sizeof(Byte.self), "Cannot create array of bytes from pointer to \(pointer.memory.dynamicType) because the type is larger than a single byte.")
+        
+        var buffer: [UInt8] = [UInt8](count: length, repeatedValue: 0)
+        
+        memcpy(&buffer, pointer, length)
+        
+        return Data(byteValue: buffer)
+    }
+}
+
+// MARK: - Equatable
+
+public func == (lhs: Data, rhs: Data) -> Bool {
+    
+    guard lhs.byteValue.count == rhs.byteValue.count else { return false }
+    
+    var bytes1 = lhs.byteValue
+    
+    var bytes2 = rhs.byteValue
+    
+    return memcmp(&bytes1, &bytes2, lhs.byteValue.count) == 0
+}
+
+
+/// Stores a primitive value.
+///
+/// Useful for Swift wrappers for C primitives.
+public protocol ByteValueType {
+    
+    associatedtype ByteValue
+    
+    /// Returns the primitive type.
+    var byteValue: ByteValue { get }
+    
+    init(byteValue: ByteValue)
 }

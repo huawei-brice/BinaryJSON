@@ -6,8 +6,6 @@
 //  Copyright © 2015 PureSwift. All rights reserved.
 //
 
-import SwiftFoundation
-
 // MARK: - Protocol
 
 /// Type can be converted to BSON.
@@ -22,61 +20,6 @@ public protocol BSONDecodable {
     
     /// Decodes the reciever from BSON.
     init?(BSONValue: BSON.Value)
-}
-
-// MARK: - SwiftFoundation Types
-
-// MARK: Null
-
-extension SwiftFoundation.Null: BSONEncodable {
-    
-    public func toBSON() -> BSON.Value { return .Null }
-}
-
-extension SwiftFoundation.Null: BSONDecodable {
-    
-    public init?(BSONValue: BSON.Value) {
-        
-        guard let value = BSONValue.rawValue as? Null else { return nil }
-        
-        self = value
-    }
-}
-
-// MARK: Date
-
-extension SwiftFoundation.Date: BSONEncodable {
-    
-    public func toBSON() -> BSON.Value { return .Date(self) }
-}
-
-extension SwiftFoundation.Date: BSONDecodable {
-    
-    public init?(BSONValue: BSON.Value) {
-        
-        guard let value = BSONValue.rawValue as? Date else { return nil }
-        
-        self = value
-    }
-}
-
-// MARK: Data
-
-extension SwiftFoundation.Data: BSONEncodable {
-    
-    public func toBSON() -> BSON.Value { return .Binary(BSON.Binary(data: self)) }
-}
-
-extension SwiftFoundation.Data: BSONDecodable {
-    
-    public init?(BSONValue: BSON.Value) {
-        
-        // generic binary is convertible to data
-        guard let value = BSONValue.rawValue as? BSON.Binary where value.subtype == .Generic
-            else { return nil }
-        
-        self = value.data
-    }
 }
 
 // MARK: - Swift Standard Library Types

@@ -6,7 +6,6 @@
 //  Copyright © 2015 PureSwift. All rights reserved.
 //
 
-import SwiftFoundation
 import CBSON
 
 public extension BSON {
@@ -15,7 +14,7 @@ public extension BSON {
 }
 
 /// BSON Object Identifier.
-public struct BSONObjectID: ByteValueType, RawRepresentable, Equatable, Hashable, CustomStringConvertible {
+public struct BSONObjectID: RawRepresentable, Equatable, Hashable, CustomStringConvertible {
     
     // MARK: - Properties
     
@@ -49,19 +48,6 @@ public struct BSONObjectID: ByteValueType, RawRepresentable, Equatable, Hashable
     public init(byteValue: ByteValue) {
         
         self.internalValue = bson_oid_t(bytes: byteValue)
-    }
-}
-
-public extension BSON.ObjectID {
-    
-    /// Date object ID was generated
-    var date: Date {
-        
-        var objectID = internalValue
-        
-        let time = bson_oid_get_time_t_unsafe(&objectID)
-        
-        return Date(timeIntervalSince1970: TimeInterval(time))
     }
 }
 
