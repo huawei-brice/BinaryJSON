@@ -30,7 +30,7 @@ public struct BSON {
         
         case String(Swift.String)
         
-//        case Date(DateValue)
+        case Date(DateValue)
         
         case Timestamp(BSON.Timestamp)
         
@@ -154,6 +154,8 @@ public struct BSON {
     }
 }
 
+public typealias DateValue = Date
+
 // MARK: - RawRepresentable
 
 public extension BSON.Value {
@@ -183,7 +185,7 @@ public extension BSON.Value {
             
         case let .Number(number): return number.rawValue
             
-//        case let .Date(date): return date
+        case let .Date(date): return date
             
         case let .Timestamp(timestamp): return timestamp
             
@@ -221,11 +223,11 @@ public extension BSON.Value {
             return
         }
         
-//        if let date = rawValue as? SwiftFoundation.Date {
-//            
-//            self = .Date(date)
-//            return
-//        }
+        if let date = rawValue as? DateValue {
+            
+            self = .Date(date)
+            return
+        }
         
         if let timestamp = rawValue as? BSON.Timestamp {
             
@@ -344,7 +346,7 @@ public func ==(lhs: BSON.Value, rhs: BSON.Value) -> Bool {
         
     case let (.Document(leftValue), .Document(rightValue)): return leftValue == rightValue
         
-//    case let (.Date(leftValue), .Date(rightValue)): return leftValue == rightValue
+    case let (.Date(leftValue), .Date(rightValue)): return leftValue == rightValue
         
     case let (.Timestamp(leftValue), .Timestamp(rightValue)): return leftValue == rightValue
         
