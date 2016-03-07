@@ -20,7 +20,11 @@ public extension timeval {
         
         guard gettimeofday(&timeStamp, nil) == 0 else {
             
-            throw POSIXError.fromErrorNumber!
+            if let error = POSIXError.fromErrorNumber as? ErrorType {
+                throw error
+            } else {
+                fatalError("Make an issue if this hits - fixing this is a TODO but I may forget")
+            }
         }
         
         return timeStamp
@@ -91,8 +95,6 @@ public extension POSIXError {
     /// Creates error from C ```errno```.
     static var fromErrorNumber: POSIXError? { return self.init(rawValue: errno) }
 }
-
-extension POSIXError: ErrorType {}
 
 #if os(Linux)
     
