@@ -9,7 +9,7 @@
 /// [Binary JSON](http://bsonspec.org)
 public struct BSON {
     
-    class Null {}
+    public class Null {}
     
     /// BSON Array
     public typealias Array = [BSON.Value]
@@ -42,31 +42,7 @@ public struct BSON {
         
         case RegularExpression(BSON.RegularExpression)
         
-        case Key(BSON.Key)
-        
-        // MARK: - Extract Values
-        
-        /// Tries to extract an array value from a ```BSON.Value```.
-        ///
-        /// - Note: Does not convert the individual elements of the array to their raw values.
-        public var arrayValue: BSON.Array? {
-            
-            switch self {
-            case let .Array(value): return value
-            default: return nil
-            }
-        }
-        
-        /// Tries to extract a document value from a ```BSON.Value```.
-        ///
-        /// - Note: Does not convert the values of the document to their raw values.
-        public var documentValue: BSON.Document? {
-            
-            switch self {
-            case let .Document(value): return value
-            default: return nil
-            }
-        }
+        case MaxMinKey(BSON.Key)
     }
     
     public enum Number: Equatable {
@@ -193,7 +169,7 @@ public extension BSON.Value {
             
         case let .String(string): return string
             
-        case let .Key(key): return key
+        case let .MaxMinKey(key): return key
             
         case let .Code(code): return code
             
@@ -213,7 +189,7 @@ public extension BSON.Value {
         
         if let key = rawValue as? BSON.Key {
             
-            self = .Key(key)
+            self = .MaxMinKey(key)
             return
         }
         
@@ -295,6 +271,120 @@ public extension BSON.Value {
     }
 }
 
+extension BSON.Value {
+    public var nullValue: BSON.Null? {
+        switch self {
+        case .Null: return BSON.Null()
+        default: return nil
+        }
+    }
+
+    public var arrayValue: BSON.Array? {
+        switch self {
+        case .Array(let arr): return arr
+        default: return nil
+        }
+    }
+
+    public var documentValue: BSON.Document? {
+        switch self {
+        case .Document(let doc): return doc
+        default: return nil
+        }
+    }
+
+    public var numberValue: BSON.Number? {
+        switch self {
+        case .Number(let num): return num
+        default: return nil
+        }
+    }
+
+    public var intValue: Int? {
+        guard let num = self.numberValue else { return nil }
+
+        switch num {
+        case .Integer32(let i): return Int(i)
+        case .Integer64(let i): return Int(i)
+        default: return nil
+        }
+    }
+
+    public var doubleValue: Double? {
+        guard let num = self.numberValue else { return nil }
+
+        switch num {
+        case .Double(let d): return d
+        default: return nil
+        }
+    }
+
+    public var boolValue: Bool? {
+        guard let num = self.numberValue else { return nil }
+
+        switch num {
+        case .Boolean(let b): return b
+        default: return nil
+        }
+    }
+
+    public var stringValue: Swift.String? {
+        switch self {
+        case .String(let str): return str
+        default: return nil
+        }
+    }
+
+    public var dateValue: DateValue? {
+        switch self {
+        case .Date(let date): return date
+        default: return nil
+        }
+    }
+
+    public var timestampValue: BSON.Timestamp? {
+        switch self {
+        case .Timestamp(let stamp): return stamp
+        default: return nil
+        }
+    }
+
+    public var binaryValue: BSON.Binary? {
+        switch self {
+        case .Binary(let binary): return binary
+        default: return nil
+        }
+    }
+
+    public var codeValue: BSON.Code? {
+        switch self {
+        case .Code(let code): return code
+        default: return nil
+        }
+    }
+
+    public var objectIDValue: BSON.ObjectID? {
+        switch self {
+        case .ObjectID(let id): return id
+        default: return nil
+        }
+    }
+
+    public var regularExpressionValue: BSON.RegularExpression? {
+        switch self {
+        case .RegularExpression(let regex): return regex
+        default: return nil
+        }
+    }
+
+    public var keyValue: BSON.Key? {
+        switch self {
+        case .MaxMinKey(let key): return key
+        default: return nil
+        }
+    }
+}
+
 public extension BSON.Number {
     
     public var rawValue: Any {
@@ -358,7 +448,7 @@ public func ==(lhs: BSON.Value, rhs: BSON.Value) -> Bool {
         
     case let (.RegularExpression(leftValue), .RegularExpression(rightValue)): return leftValue == rightValue
         
-    case let (.Key(leftValue), .Key(rightValue)): return leftValue == rightValue
+    case let (.MaxMinKey(leftValue), .MaxMinKey(rightValue)): return leftValue == rightValue
         
     default: return false
     }

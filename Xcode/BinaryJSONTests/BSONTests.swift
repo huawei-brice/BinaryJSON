@@ -54,6 +54,27 @@ class BSONTests: XCTestCase {
             XCTAssert(newDocument == document, "\(newDocument) == \(document)")
         }
     }
+
+    func testConvertible() {
+        let document: BSON.Document = [
+            "string": "string",
+            "int": 5,
+            "double": 5.123,
+            "bool": true,
+            "arr": [1,2,3],
+            "dict": [
+                "key1": "value1",
+                "key2": [1,2,3]
+            ]
+        ]
+
+        XCTAssert(document["string"]?.stringValue == "string")
+        XCTAssert(document["int"]?.intValue == 5)
+        XCTAssert(document["double"]?.doubleValue == 5.123)
+        XCTAssert(document["bool"]?.boolValue == true)
+        XCTAssert(document["arr"]!.arrayValue! == [1,2,3])
+        XCTAssert(document["dict"]!.documentValue! == ["key1": "value1", "key2": [1,2,3]])
+    }
 }
 
 // MARK: - Internal
@@ -100,17 +121,10 @@ func sampleDocument() -> BSON.Document {
         
         document["timestamp"] = .Timestamp(BSON.Timestamp(time: 10, oridinal: 1))
         
-        document["minkey"] = .Key(.Minimum)
+        document["minkey"] = .MaxMinKey(.Minimum)
         
-        document["maxkey"] = .Key(.Maximum)
+        document["maxkey"] = .MaxMinKey(.Maximum)
     }
     
     return document
-}
-
-extension String {
-    func toUTF8Data() -> Data {
-        
-        return Data(byteValue: [] + utf8)
-    }
 }

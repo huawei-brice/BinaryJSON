@@ -188,3 +188,64 @@ public extension RawRepresentable where RawValue: BSONDecodable {
     }
 }
 
+// MARK: Literals
+
+extension BSON.Value: StringLiteralConvertible {
+    public init(unicodeScalarLiteral value: Swift.String) {
+        self = .String(value)
+    }
+
+    public init(extendedGraphemeClusterLiteral value: Swift.String) {
+        self = .String(value)
+    }
+
+    public init(stringLiteral value: StringLiteralType) {
+        self = .String(value)
+    }
+}
+
+extension BSON.Value: NilLiteralConvertible {
+    public init(nilLiteral value: Void) {
+        self = .Null
+    }
+}
+
+extension BSON.Value: BooleanLiteralConvertible {
+    public init(booleanLiteral value: BooleanLiteralType) {
+        self = .Number(.Boolean(value))
+    }
+}
+
+extension BSON.Value: IntegerLiteralConvertible {
+    public init(integerLiteral value: IntegerLiteralType) {
+        if IntMax.self == Int64.self {
+            self = .Number(.Integer64(Int64(value)))
+        } else {
+            self = .Number(.Integer32(Int32(value)))
+        }
+    }
+}
+
+extension BSON.Value: FloatLiteralConvertible {
+    public init(floatLiteral value: FloatLiteralType) {
+        self = .Number(.Double(Double(value)))
+    }
+}
+
+extension BSON.Value: ArrayLiteralConvertible {
+    public init(arrayLiteral elements: BSON.Value...) {
+        self = .Array(elements)
+    }
+}
+
+extension BSON.Value: DictionaryLiteralConvertible {
+    public init(dictionaryLiteral elements: (Swift.String, BSON.Value)...) {
+        var dictionary = Dictionary<Swift.String, BSON.Value>(minimumCapacity: elements.count)
+
+        for pair in elements {
+            dictionary[pair.0] = pair.1
+        }
+
+        self = .Document(dictionary)
+    }
+}

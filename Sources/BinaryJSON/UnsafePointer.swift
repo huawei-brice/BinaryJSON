@@ -110,7 +110,7 @@ private extension BSON {
             
             return bson_append_regex(documentPointer, key, keyLength, regularExpression.pattern, regularExpression.options)
             
-        case let .Key(keyType):
+        case let .MaxMinKey(keyType):
             
             switch keyType {
                 
@@ -392,11 +392,11 @@ private extension BSON {
                 
             case BSON_TYPE_MAXKEY:
                 
-                value = .Key(.Maximum)
+                value = .MaxMinKey(.Maximum)
                 
             case BSON_TYPE_MINKEY:
                 
-                value = .Key(.Minimum)
+                value = .MaxMinKey(.Minimum)
                 
             default: fatalError("Case \(type) not implemented")
             }
