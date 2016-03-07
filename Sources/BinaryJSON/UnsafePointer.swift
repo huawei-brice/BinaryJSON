@@ -29,7 +29,7 @@ public extension BSON {
     /// Creates a ```BSON.Document``` from an unsafe pointer. 
     ///
     /// - Precondition: The ```bson_t``` must be valid.
-    static func documentFromUnsafePointer(documentPointer: UnsafeMutablePointer<bson_t>) -> BSON.Document? {
+    static func documentFromUnsafePointer(documentPointer: UnsafePointer<bson_t>) -> BSON.Document? {
         
         var iterator = bson_iter_t()
         
