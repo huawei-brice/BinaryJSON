@@ -402,8 +402,11 @@ public extension BSON.Number {
         if let value = rawValue as? Bool            { self = .Boolean(value) }
         if let value = rawValue as? Int32           { self = .Integer32(value) }
         if let value = rawValue as? Int64           { self = .Integer64(value) }
-        if let value = rawValue as? Swift.Double     { self = .Double(value)  }
-        
+        if let value = rawValue as? Swift.Double    { self = .Double(value) }
+
+        // use Int32 as a default - maybe check type of IntMax (Int32/Int64)?
+        if let value = rawValue as? Int             { self = .Integer32(Int32(value)) }
+
         return nil
     }
 }
