@@ -218,11 +218,7 @@ extension BSON.Value: BooleanLiteralConvertible {
 
 extension BSON.Value: IntegerLiteralConvertible {
     public init(integerLiteral value: IntegerLiteralType) {
-        if IntMax.self == Int64.self {
-            self = .Number(.Integer64(Int64(value)))
-        } else {
-            self = .Number(.Integer32(Int32(value)))
-        }
+        self = .Number(.Integer32(Int32(value)))
     }
 }
 

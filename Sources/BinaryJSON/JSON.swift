@@ -36,4 +36,26 @@ public extension BSON {
         
         return string
     }
+
+    static func pointerFromJSONString(json: String) throws -> UnsafeMutablePointer<bson_t> {
+
+        var error = bson_error_t()
+        let bson = bson_new_from_json(json, -1, &error)
+
+        guard error.code == 0 else {
+            throw BSON.Error(unsafePointer: &error)
+        }
+
+        return bson
+    }
+
+    static func fromJSONString(json: String) throws -> BSON.Document {
+
+        let bson = try BSON.pointerFromJSONString(json)
+
+        let document = BSON.documentFromUnsafePointer(bson)
+
+        // if bson_new_from_json succeeded, we can guarantee this works
+        return document!
+    }
 }

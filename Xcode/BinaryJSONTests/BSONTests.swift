@@ -75,6 +75,29 @@ class BSONTests: XCTestCase {
         XCTAssert(document["arr"]!.arrayValue! == [1,2,3])
         XCTAssert(document["dict"]!.documentValue! == ["key1": "value1", "key2": [1,2,3]])
     }
+
+    func testJSON() throws {
+        let document: BSON.Document = [
+            "string": "string",
+            "int": 5,
+            "double": 5.123,
+            "bool": true,
+            "arr": [1,2,3],
+            "dict": [
+                "key1": "value1",
+                "key2": [1,2,3]
+            ]
+        ]
+
+        let json = BSON.toJSONString(document)
+
+        // lazy checking
+        XCTAssert(json.characters.count > 0)
+
+        let documentFromJSON = try BSON.fromJSONString(json)
+
+        XCTAssertEqual(document, documentFromJSON)
+    }
 }
 
 // MARK: - Internal
