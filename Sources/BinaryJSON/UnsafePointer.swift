@@ -9,6 +9,30 @@
 import CBSON
 
 public extension BSON {
+
+    /// Carries an UnsafeMutablePointer<bson_t> and calls `bson_destroy` on it upon deinitialization.
+    public final class AutoReleasingCarrier {
+        public let pointer: UnsafeMutablePointer<bson_t>
+
+        public init(bson: UnsafeMutablePointer<bson_t>) {
+            self.pointer = bson
+        }
+
+        public convenience init?(document: BSON.Document) {
+            guard let bson = BSON.unsafePointerFromDocument(document) else {
+                return nil
+            }
+
+            self.init(bson: bson)
+        }
+
+        deinit {
+            bson_destroy(self.pointer)
+        }
+    }
+}
+
+public extension BSON {
     
     /// Creates an unsafe pointer of a BSON document for use with the C API.
     ///
