@@ -8,12 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		37008B5A1C77B414000819D4 /* SwiftFoundation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37008B591C77B414000819D4 /* SwiftFoundation.swift */; };
-		37008B5C1C77B543000819D4 /* BSONTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37008B5B1C77B543000819D4 /* BSONTests.swift */; };
+		37BAB6441C90B1C400081FF6 /* BSONTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37BAB6431C90B1C400081FF6 /* BSONTests.swift */; };
 		6E012F791C2B98A4007ADFF0 /* Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EE709571C274FDA00573EE4 /* Error.swift */; };
-		6E3E14571C2B5FB500AD9F5B /* libbson-1.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E3E14561C2B5FB500AD9F5B /* libbson-1.0.0.dylib */; };
 		6E68254F1C1FDAB7006C6FF8 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E68254E1C1FDAB7006C6FF8 /* Extensions.swift */; };
 		6E8D798E1C29353D0016893F /* JSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ED88B711C1E359200DF07E3 /* JSON.swift */; };
-		6ED88B521C1E226A00DF07E3 /* BSON.h in Headers */ = {isa = PBXBuildFile; fileRef = 6ED88B511C1E226A00DF07E3 /* BSON.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		6ED88B591C1E226A00DF07E3 /* BinaryJSON.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6ED88B4E1C1E226A00DF07E3 /* BinaryJSON.framework */; };
 		6ED88B6C1C1E230700DF07E3 /* BSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ED88B6B1C1E230700DF07E3 /* BSON.swift */; };
 		6ED88B741C1E35B400DF07E3 /* UnsafePointer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ED88B731C1E35B400DF07E3 /* UnsafePointer.swift */; };
@@ -47,16 +45,12 @@
 
 /* Begin PBXFileReference section */
 		37008B591C77B414000819D4 /* SwiftFoundation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwiftFoundation.swift; sourceTree = "<group>"; };
-		37008B5B1C77B543000819D4 /* BSONTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BSONTests.swift; sourceTree = "<group>"; };
-		6E3E14531C2B5D5F00AD9F5B /* module.map */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.map; sourceTree = SOURCE_ROOT; };
-		6E3E14561C2B5FB500AD9F5B /* libbson-1.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libbson-1.0.0.dylib"; path = "../../../../../usr/local/lib/libbson-1.0.0.dylib"; sourceTree = "<group>"; };
+		37BAB6431C90B1C400081FF6 /* BSONTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BSONTests.swift; sourceTree = "<group>"; };
+		37BAB6451C90B1D500081FF6 /* module.map */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = "sourcecode.module-map"; path = module.map; sourceTree = SOURCE_ROOT; };
 		6E68254E1C1FDAB7006C6FF8 /* Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		6EC34CEC1C2F4F0200C29561 /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Package.swift; path = ../Package.swift; sourceTree = "<group>"; };
 		6ED88B4E1C1E226A00DF07E3 /* BinaryJSON.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = BinaryJSON.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		6ED88B511C1E226A00DF07E3 /* BSON.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BSON.h; sourceTree = "<group>"; };
-		6ED88B531C1E226A00DF07E3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		6ED88B581C1E226A00DF07E3 /* BinaryJSONTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BinaryJSONTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		6ED88B5F1C1E226A00DF07E3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		6ED88B6B1C1E230700DF07E3 /* BSON.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BSON.swift; sourceTree = "<group>"; };
 		6ED88B711C1E359200DF07E3 /* JSON.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JSON.swift; sourceTree = "<group>"; };
 		6ED88B731C1E35B400DF07E3 /* UnsafePointer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UnsafePointer.swift; sourceTree = "<group>"; };
@@ -64,7 +58,6 @@
 		6EE709551C2747E500573EE4 /* Reader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Reader.swift; sourceTree = "<group>"; };
 		6EE709571C274FDA00573EE4 /* Error.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Error.swift; sourceTree = "<group>"; };
 		6EF6DB221C1E942800D38C7B /* ObjectID.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObjectID.swift; sourceTree = "<group>"; };
-		6EFE5AD21C28DE8B00C3007F /* SwiftFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftFoundation.framework; path = ../Carthage/Build/Mac/SwiftFoundation.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -72,7 +65,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6E3E14571C2B5FB500AD9F5B /* libbson-1.0.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -87,14 +79,21 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		37BAB6421C90B1C400081FF6 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				37BAB6431C90B1C400081FF6 /* BSONTests.swift */,
+			);
+			name = Tests;
+			path = ../Tests;
+			sourceTree = "<group>";
+		};
 		6ED88B441C1E226A00DF07E3 = {
 			isa = PBXGroup;
 			children = (
 				6EC34CEC1C2F4F0200C29561 /* Package.swift */,
-				6EFE5AD11C28DE6F00C3007F /* Dependencies */,
 				6ED88B681C1E22F300DF07E3 /* Sources */,
-				6ED88B501C1E226A00DF07E3 /* BinaryJSON */,
-				6ED88B5C1C1E226A00DF07E3 /* BinaryJSONTests */,
+				37BAB6421C90B1C400081FF6 /* Tests */,
 				6ED88B4F1C1E226A00DF07E3 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -108,28 +107,10 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		6ED88B501C1E226A00DF07E3 /* BinaryJSON */ = {
-			isa = PBXGroup;
-			children = (
-				6ED88B511C1E226A00DF07E3 /* BSON.h */,
-				6E3E14531C2B5D5F00AD9F5B /* module.map */,
-				6ED88B531C1E226A00DF07E3 /* Info.plist */,
-			);
-			path = BinaryJSON;
-			sourceTree = "<group>";
-		};
-		6ED88B5C1C1E226A00DF07E3 /* BinaryJSONTests */ = {
-			isa = PBXGroup;
-			children = (
-				6ED88B5F1C1E226A00DF07E3 /* Info.plist */,
-				37008B5B1C77B543000819D4 /* BSONTests.swift */,
-			);
-			path = BinaryJSONTests;
-			sourceTree = "<group>";
-		};
 		6ED88B681C1E22F300DF07E3 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				37BAB6451C90B1D500081FF6 /* module.map */,
 				6ED88B691C1E22F300DF07E3 /* BSON */,
 			);
 			name = Sources;
@@ -153,15 +134,6 @@
 			path = BinaryJSON;
 			sourceTree = "<group>";
 		};
-		6EFE5AD11C28DE6F00C3007F /* Dependencies */ = {
-			isa = PBXGroup;
-			children = (
-				6EFE5AD21C28DE8B00C3007F /* SwiftFoundation.framework */,
-				6E3E14561C2B5FB500AD9F5B /* libbson-1.0.0.dylib */,
-			);
-			name = Dependencies;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -169,7 +141,6 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6ED88B521C1E226A00DF07E3 /* BSON.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -287,7 +258,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				37008B5C1C77B543000819D4 /* BSONTests.swift in Sources */,
+				37BAB6441C90B1C400081FF6 /* BSONTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -401,7 +372,7 @@
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				FRAMEWORK_VERSION = A;
-				INFOPLIST_FILE = "$(SRCROOT)/BinaryJSON/Info.plist";
+				HEADER_SEARCH_PATHS = "/usr/local/include/libbson-1.0";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = /usr/local/lib;
@@ -422,7 +393,7 @@
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				FRAMEWORK_VERSION = A;
-				INFOPLIST_FILE = "$(SRCROOT)/BinaryJSON/Info.plist";
+				HEADER_SEARCH_PATHS = "/usr/local/include/libbson-1.0";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = /usr/local/lib;
@@ -438,7 +409,6 @@
 				CLANG_ENABLE_MODULES = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				FRAMEWORK_SEARCH_PATHS = "";
-				INFOPLIST_FILE = BinaryJSONTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = /usr/local/lib;
 				PRODUCT_BUNDLE_IDENTIFIER = org.pureswift.BSONTests;
@@ -453,7 +423,6 @@
 				CLANG_ENABLE_MODULES = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				FRAMEWORK_SEARCH_PATHS = "";
-				INFOPLIST_FILE = BinaryJSONTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = /usr/local/lib;
 				PRODUCT_BUNDLE_IDENTIFIER = org.pureswift.BSONTests;
