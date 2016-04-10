@@ -28,6 +28,6 @@ ADD ./Sources /BinaryJSON/Sources
 ADD ./Tests /BinaryJSON/Tests
 
 # Build it
-RUN swift build -Xcc -I/usr/local/include/libbson-1.0
+RUN swift build -Xcc -I/usr/local/include/libbson-1.0 -Xlinker -L/usr/local/lib
 
 ### To run tests, start this container with /bin/bash and run `swift test`.
