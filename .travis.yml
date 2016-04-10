@@ -3,4 +3,4 @@ services:
 before_install:
   - docker build -t danappelxx/binaryjson -f Tests/Dockerfile .
 script:
-  - docker run danappelxx/binaryjson swift test
+  - docker run danappelxx/binaryjson swift test -Xlinker -L/usr/local/lib
