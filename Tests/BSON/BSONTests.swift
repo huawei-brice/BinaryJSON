@@ -12,12 +12,6 @@ import CBSON
 
 class BSONTests: XCTestCase {
 
-    var allTests : [(String, () -> Void)] {
-        return [
-            ("testUnsafePointer", testUnsafePointer),
-        ]
-    }
-
     func testUnsafePointer() {
 
         let document = sampleDocument()
@@ -99,6 +93,16 @@ class BSONTests: XCTestCase {
         XCTAssertEqual(document, documentFromJSON)
     }
 }
+
+extension BSONTests {
+    var allTests: [(String, BSONTests -> () throws -> Void)] {
+        return [
+            ("testUnsafePointer", testUnsafePointer),
+            ("testConvertible", testConvertible),
+            ("testJSON", testJSON)
+        ]
+}
+
 
 // MARK: - Internal
 
