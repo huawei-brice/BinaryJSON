@@ -3,7 +3,7 @@
 [![Platforms](https://img.shields.io/badge/platform-osx%20%7C%20linux-lightgrey.svg)](https://www.swift.org)
 [![License MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat)](https://tldrlegal.com/license/mit-license)
 [![Release](https://img.shields.io/github/release/pureswift/BinaryJSON.svg)](https://github.com/PureSwift/BinaryJSON/releases)
-[![Build Status](https://travis-ci.org/PureSwift/BinaryJSON.svg?branch=master)](https://travis-ci.org/PureSwift/BinaryJSON)
+[![Build Status](https://travis-ci.org/Danappelxx/BinaryJSON.svg?branch=master)](https://travis-ci.org/PureSwift/BinaryJSON)
 
 [![SPM compatible](https://img.shields.io/badge/SPM-compatible-4BC51D.svg?style=flat)](https://github.com/apple/swift-package-manager)
 
