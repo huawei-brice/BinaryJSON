@@ -95,12 +95,13 @@ class BSONTests: XCTestCase {
 }
 
 extension BSONTests {
-    var allTests: [(String, BSONTests -> () throws -> Void)] {
+    static var allTests: [(String, BSONTests -> () throws -> Void)] {
         return [
             ("testUnsafePointer", testUnsafePointer),
             ("testConvertible", testConvertible),
             ("testJSON", testJSON)
         ]
+    }
 }
 
 
