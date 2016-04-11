@@ -20,7 +20,7 @@ public extension timeval {
         
         guard gettimeofday(&timeStamp, nil) == 0 else {
             
-            if let error = POSIXError.fromErrorNumber as? ErrorType {
+            if let error = POSIXError.fromErrorNumber as? ErrorProtocol {
                 throw error
             } else {
                 fatalError("Make an issue if this hits - fixing this is a TODO but I may forget")
@@ -86,7 +86,7 @@ public extension tm {
         
         let timePointer = gmtime(&seconds)
         
-        self = timePointer.memory
+        self = timePointer.pointee
     }
 }
 
@@ -99,7 +99,7 @@ public extension POSIXError {
 #if os(Linux)
     
     /// Enumeration describing POSIX error codes.
-    public enum POSIXError: ErrorType, RawRepresentable {
+    public enum POSIXError: ErrorProtocol, RawRepresentable {
         
         case Value(CInt)
         
@@ -235,7 +235,7 @@ public func + (lhs: Date, rhs: TimeInterval) -> Date {
     return Date(timeIntervalSinceReferenceDate: lhs.timeIntervalSinceReferenceDate + rhs)
 }
 
-public func += (inout lhs: Date, rhs: TimeInterval) {
+public func += (lhs: inout Date, rhs: TimeInterval) {
     
     lhs = lhs + rhs
 }
@@ -245,7 +245,7 @@ public func - (lhs: Date, rhs: TimeInterval) -> Date {
     return Date(timeIntervalSinceReferenceDate: lhs.timeIntervalSinceReferenceDate - rhs)
 }
 
-public func -= (inout lhs: Date, rhs: TimeInterval) {
+public func -= (lhs: inout Date, rhs: TimeInterval) {
     
     lhs = lhs - rhs
 }
