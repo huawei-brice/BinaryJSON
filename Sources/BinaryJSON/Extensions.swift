@@ -6,242 +6,201 @@
 //  Copyright © 2015 PureSwift. All rights reserved.
 //
 
-// MARK: - Protocol
-
-/// Type can be converted to BSON.
-public protocol BSONEncodable {
-    
-    /// Encodes the reciever into BSON.
-    func toBSON() -> BSON.Value
+public protocol BSONRepresentable {
+    var bson: BSON { get }
 }
 
-/// Type can be converted from BSON.
-public protocol BSONDecodable {
-    
-    /// Decodes the reciever from BSON.
-    init?(BSONValue: BSON.Value)
+public protocol BSONInitializable {
+    init(bson: BSON) throws
 }
 
-// MARK: - Swift Standard Library Types
+public protocol BSONConvertible: BSONRepresentable, BSONInitializable {}
 
-// MARK: Encodable
+extension BSON: BSONConvertible {
+    public var bson: BSON { return self }
 
-extension String: BSONEncodable {
-    
-    public func toBSON() -> BSON.Value { return .String(self) }
-}
-
-extension String: BSONDecodable {
-    
-    public init?(BSONValue: BSON.Value) {
-        
-        guard let value = BSONValue.rawValue as? String else { return nil }
-        
-        self = value
+    public init(bson: BSON) throws {
+        self = bson
     }
 }
 
-extension Int32: BSONEncodable {
+extension String: BSONConvertible {
+    public var bson: BSON { return .infer(self) }
     
-    public func toBSON() -> BSON.Value { return .Number(.Integer32(self)) }
-}
-
-extension Int32: BSONDecodable {
-    
-    public init?(BSONValue: BSON.Value) {
-        
-        guard let value = BSONValue.rawValue as? Int32 else { return nil }
-        
-        self = value
+    public init(bson: BSON) throws {
+        self = try bson.get()
     }
 }
 
-extension Int64: BSONEncodable {
+extension Int: BSONConvertible {
+    public var bson: BSON { return .infer(self) }
     
-    public func toBSON() -> BSON.Value { return .Number(.Integer64(self)) }
-}
-
-extension Int64: BSONDecodable {
-    
-    public init?(BSONValue: BSON.Value) {
-        
-        guard let value = BSONValue.rawValue as? Int64 else { return nil }
-        
-        self = value
+    public init(bson: BSON) throws {
+        self = try bson.get()
     }
 }
 
-extension Double: BSONEncodable {
+extension Double: BSONConvertible {
+    public var bson: BSON { return .infer(self) }
     
-    public func toBSON() -> BSON.Value { return .Number(.Double(self)) }
-}
-
-extension Double: BSONDecodable {
-    
-    public init?(BSONValue: BSON.Value) {
-        
-        guard let value = BSONValue.rawValue as? Double else { return nil }
-        
-        self = value
+    public init(bson: BSON) throws {
+        self = try bson.get()
     }
 }
 
-extension Bool: BSONEncodable {
+extension Bool: BSONConvertible {
+    public var bson: BSON { return .infer(self) }
     
-    public func toBSON() -> BSON.Value { return .Number(.Boolean(self)) }
-}
-
-extension Bool: BSONDecodable {
-    
-    public init?(BSONValue: BSON.Value) {
-        
-        guard let value = BSONValue.rawValue as? Bool else { return nil }
-        
-        self = value
+    public init(bson: BSON) throws {
+        self = try bson.get()
     }
 }
 
-// MARK: - Collection Extensions
-
-// MARK: Encodable
-
-public extension Collection where Iterator.Element: BSONEncodable {
+extension Binary: BSONConvertible {
+    public var bson: BSON {
+        return .infer(self)
+    }
     
-    func toBSON() -> BSON.Value {
-        
-        var BSONArray = BSON.Array()
-        
-        for BSONEncodable in self {
-            
-            let BSONValue = BSONEncodable.toBSON()
-            
-            BSONArray.append(BSONValue)
-        }
-        
-        return .Array(BSONArray)
+    public init(bson: BSON) throws {
+        self = try bson.get()
     }
 }
 
-public extension Dictionary where Value: BSONEncodable, Key: StringLiteralConvertible {
+extension ObjectID: BSONConvertible {
+    public var bson: BSON {
+        return .infer(self)
+    }
     
-    /// Encodes the reciever into BSON.
-    func toBSON() -> BSON.Value {
-        
-        var document = BSON.Document()
-        
-        for (key, value) in self {
-            
-            let BSONValue = value.toBSON()
-            
-            let keyString = String(key)
-            
-            document[keyString] = BSONValue
-        }
-        
-        return .Document(document)
+    public init(bson: BSON) throws {
+        self = try bson.get()
     }
 }
 
-// MARK: Decodable
+//extension Date: BSONConvertible {
+//    public var bson: BSON {
+//        return .infer(self)
+//    }
+//    
+//    public init(bson: BSON) throws {
+//        self = try bson.get()
+//    }
+//}
 
-public extension BSONDecodable {
+extension RegularExpression: BSONConvertible {
+    public var bson: BSON {
+        return .infer(self)
+    }
     
-    /// Decodes from an array of BSON values.
-    static func fromBSON(BSONArray: BSON.Array) -> [Self]? {
-        
-        var BSONDecodables = [Self]()
-        
-        for BSONValue in BSONArray {
-            
-            guard let BSONDecodable = self.init(BSONValue: BSONValue) else { return nil }
-            
-            BSONDecodables.append(BSONDecodable)
-        }
-        
-        return BSONDecodables
+    public init(bson: BSON) throws {
+        self = try bson.get()
     }
 }
 
-// MARK: - RawRepresentable Extensions
-
-// MARK: Encode
-
-public extension RawRepresentable where RawValue: BSONEncodable {
+extension Code: BSONConvertible {
+    public var bson: BSON {
+        return .infer(self)
+    }
     
-    /// Encodes the reciever into BSON.
-    func toBSON() -> BSON.Value {
-        
-        return rawValue.toBSON()
+    public init(bson: BSON) throws {
+        self = try bson.get()
     }
 }
 
-// MARK: Decode
-
-public extension RawRepresentable where RawValue: BSONDecodable {
+extension Timestamp: BSONConvertible {
+    public var bson: BSON {
+        return .infer(self)
+    }
     
-    /// Decodes the reciever from BSON.
-    init?(BSONValue: BSON.Value) {
-        
-        guard let rawValue = RawValue(BSONValue: BSONValue) else { return nil }
-        
-        self.init(rawValue: rawValue)
+    public init(bson: BSON) throws {
+        self = try bson.get()
     }
 }
 
-// MARK: Literals
+public extension Collection where Iterator.Element: BSONRepresentable {
+    var bson: BSON {
+        return .infer(self.map { $0.bson })
+    }
+}
 
-extension BSON.Value: StringLiteralConvertible {
+public extension Dictionary where Key: StringLiteralConvertible, Value: BSONRepresentable {
+    var bson: BSON {
+        let dict = self
+            .mapValues { $0.bson }
+            .mapKeys { String($0) }
+        return .infer(dict)
+    }
+}
+
+extension BSON: StringLiteralConvertible {
     public init(unicodeScalarLiteral value: Swift.String) {
-        self = .String(value)
+        self = .infer(value)
     }
 
     public init(extendedGraphemeClusterLiteral value: Swift.String) {
-        self = .String(value)
+        self = .infer(value)
     }
 
     public init(stringLiteral value: StringLiteralType) {
-        self = .String(value)
+        self = .infer(value)
     }
 }
 
-extension BSON.Value: NilLiteralConvertible {
+extension BSON: NilLiteralConvertible {
     public init(nilLiteral value: Void) {
-        self = .Null
+        self = .null
     }
 }
 
-extension BSON.Value: BooleanLiteralConvertible {
+extension BSON: BooleanLiteralConvertible {
     public init(booleanLiteral value: BooleanLiteralType) {
-        self = .Number(.Boolean(value))
+        self = .infer(value)
     }
 }
 
-extension BSON.Value: IntegerLiteralConvertible {
-    public init(integerLiteral value: IntegerLiteralType) {
-        self = .Number(.Integer32(Int32(value)))
+extension BSON: IntegerLiteralConvertible {
+    public init(integerLiteral value: Int) {
+        self = .infer(value)
     }
 }
 
-extension BSON.Value: FloatLiteralConvertible {
-    public init(floatLiteral value: FloatLiteralType) {
-        self = .Number(.Double(Double(value)))
+extension BSON: FloatLiteralConvertible {
+    public init(floatLiteral value: Double) {
+        self = .infer(value)
     }
 }
 
-extension BSON.Value: ArrayLiteralConvertible {
-    public init(arrayLiteral elements: BSON.Value...) {
-        self = .Array(elements)
+extension BSON: ArrayLiteralConvertible {
+    public init(arrayLiteral elements: BSON...) {
+        self = .infer(elements)
     }
 }
 
-extension BSON.Value: DictionaryLiteralConvertible {
-    public init(dictionaryLiteral elements: (Swift.String, BSON.Value)...) {
-        var dictionary = Dictionary<Swift.String, BSON.Value>(minimumCapacity: elements.count)
+extension BSON: DictionaryLiteralConvertible {
+    public init(dictionaryLiteral elements: (Swift.String, BSON)...) {
+        var dictionary = [String:BSON](minimumCapacity: elements.count)
 
         for pair in elements {
             dictionary[pair.0] = pair.1
         }
 
-        self = .Document(dictionary)
+        self = .infer(dictionary)
+    }
+}
+
+
+extension Dictionary {
+    public func mapValues<T>(_ transform: @noescape (Value) throws -> T) rethrows -> [Key: T] {
+        var transformed = [Key:T]()
+        for (key, value) in self {
+            transformed[key] = try transform(value)
+        }
+        return transformed
+    }
+    public func mapKeys<T>(_ transform: @noescape (Key) throws -> T) rethrows -> [T: Value] {
+        var transformed = [T:Value]()
+        for (key, value) in self {
+            try transformed[transform(key)] = value
+        }
+        return transformed
     }
 }

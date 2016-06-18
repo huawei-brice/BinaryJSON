@@ -1,501 +1,419 @@
 //
-//  BSON.swift
+//  swift
 //  BSON
 //
 //  Created by Alsey Coleman Miller on 12/13/15.
 //  Copyright © 2015 PureSwift. All rights reserved.
 //
 
+import CLibbson
+
 /// [Binary JSON](http://bsonspec.org)
-public struct BSON {
-    
-    public class Null {}
-    
-    /// BSON Array
-    public typealias Array = [BSON.Value]
-    
-    /// BSON Document
-    public typealias Document = [String: BSON.Value]
-    
-    /// BSON value type. 
-    public enum Value: RawRepresentable, Equatable, CustomStringConvertible {
-        
-        case Null
-        
-        case Array(BSON.Array)
-        
-        case Document(BSON.Document)
-        
-        case Number(BSON.Number)
-        
-        case String(Swift.String)
-        
-        case Date(DateValue)
-        
-        case Timestamp(BSON.Timestamp)
-        
-        case Binary(BSON.Binary)
-        
-        case Code(BSON.Code)
-        
-        case ObjectID(BSON.ObjectID)
-        
-        case RegularExpression(BSON.RegularExpression)
-        
-        case MaxMinKey(BSON.Key)
-    }
-    
-    public enum Number: Equatable {
-        
-        case Boolean(Bool)
-        
-        case Integer32(Int32)
-        
-        case Integer64(Int64)
-        
-        case Double(Swift.Double)
-    }
-    
-    public struct Binary: Equatable {
-        
-        public enum Subtype: Byte {
-            
-            case Generic    = 0x00
-            case Function   = 0x01
-            case Old        = 0x02
-            case UUIDOld    = 0x03
-            case UUID       = 0x04
-            case MD5        = 0x05
-            case User       = 0x80
-        }
-        
-        public var data: Data
-        
-        public var subtype: Subtype
-        
-        public init(data: Data, subtype: Subtype = .Generic) {
-            
-            self.data = data
-            self.subtype = subtype
-        }
-    }
-    
-    /// Represents a string of Javascript code.
-    public struct Code: Equatable {
-        
-        public var code: String
-        
-        public var scope: BSON.Document?
-        
-        public init(_ code: String, scope: BSON.Document? = nil) {
-            
-            self.code = code
-            self.scope = scope
-        }
-    }
-    
-    /// BSON maximum and minimum representable types.
-    public enum Key {
-        
-        case Minimum
-        case Maximum
-    }
-        
-    public struct Timestamp: Equatable {
-        
-        /// Seconds since the Unix epoch.
-        public var time: UInt32
-        
-        /// Prdinal for operations within a given second. 
-        public var oridinal: UInt32
-        
-        public init(time: UInt32, oridinal: UInt32) {
-            
-            self.time = time
-            self.oridinal = oridinal
-        }
-    }
-    
-    public struct RegularExpression: Equatable {
-        
-        public var pattern: String
-        
-        public var options: String
-        
-        public init(_ pattern: String, options: String) {
-            
-            self.pattern = pattern
-            self.options = options
-        }
+public enum BSON {
+    case null
+    case array([BSON])
+    case document([String:BSON])
+    case int(Int)
+    case double(Double)
+    case bool(Bool)
+    case string(String)
+//    case date(Date)
+    case timestamp(Timestamp)
+    case binary(Binary)
+    case code(Code)
+    case objectID(ObjectID)
+    case regularExpression(RegularExpression)
+    case key(Key)
+}
+
+extension BSON: Equatable {}
+
+public func ==(lhs: BSON, rhs: BSON) -> Bool {
+    switch (lhs, rhs) {
+    case (.null, .null): return true
+    case let (.array(lhs), .array(rhs)): return lhs == rhs
+    case let (.document(lhs), .document(rhs)): return lhs == rhs
+    case let (.int(lhs), .int(rhs)): return lhs == rhs
+    case let (.double(lhs), .double(rhs)): return lhs == rhs
+    case let (.bool(lhs), .bool(rhs)): return lhs == rhs
+    case let (.string(lhs), .string(rhs)): return lhs == rhs
+//    case let (.date(lhs), .date(rhs)): return lhs == rhs
+    case let (.timestamp(lhs), .timestamp(rhs)): return lhs == rhs
+    case let (.binary(lhs), .binary(rhs)): return lhs == rhs
+    case let (.code(lhs), .code(rhs)): return lhs == rhs
+    case let (.objectID(lhs), .objectID(rhs)): return lhs == rhs
+    case let (.regularExpression(lhs), .regularExpression(rhs)): return lhs == rhs
+    case let (.key(lhs), .key(rhs)): return lhs == rhs
+    default: return false
     }
 }
 
-public typealias DateValue = Date
-
-// MARK: - RawRepresentable
-
-public extension BSON.Value {
-    
-    var rawValue: Any {
-        
-        switch self {
-            
-        case .Null: return BSON.Null()
-            
-        case let .Array(array):
-            
-            let rawValues = array.map { (value) in return value.rawValue }
-            
-            return rawValues
-            
-        case let .Document(document):
-            
-            var rawObject: [Swift.String:Any] = [:]
-            
-            for (key, value) in document {
-                
-                rawObject[key] = value.rawValue
-            }
-            
-            return rawObject
-            
-        case let .Number(number): return number.rawValue
-            
-        case let .Date(date): return date
-            
-        case let .Timestamp(timestamp): return timestamp
-            
-        case let .Binary(binary): return binary
-            
-        case let .String(string): return string
-            
-        case let .MaxMinKey(key): return key
-            
-        case let .Code(code): return code
-            
-        case let .ObjectID(objectID): return objectID
-            
-        case let .RegularExpression(regularExpression): return regularExpression
-        }
+extension BSON {
+    public var arrayValue: [BSON]? {
+        return try? get()
     }
     
-    init?(rawValue: Any) {
-        
-        guard (rawValue as? BSON.Null) == nil else {
-            
-            self = .Null
-            return
-        }
-        
-        if let key = rawValue as? BSON.Key {
-            
-            self = .MaxMinKey(key)
-            return
-        }
-        
-        if let string = rawValue as? Swift.String {
-            
-            self = .String(string)
-            return
-        }
-        
-        if let date = rawValue as? DateValue {
-            
-            self = .Date(date)
-            return
-        }
-        
-        if let timestamp = rawValue as? BSON.Timestamp {
-            
-            self = .Timestamp(timestamp)
-            return
-        }
-        
-        if let binary = rawValue as? BSON.Binary {
-            
-            self = .Binary(binary)
-            return
-        }
-        
-        if let number = BSON.Number(rawValue: rawValue) {
-            
-            self = .Number(number)
-            return
-        }
-        
-        if let rawArray = rawValue as? [Any] {
-            
-            var jsonArray: [BSON.Value] = []
-            for val in rawArray {
-                guard let json = BSON.Value(rawValue: val) else { return nil }
-                jsonArray.append(json)
-            }
-            self = .Array(jsonArray)
-            return
-        }
-        
-        if let rawDictionary = rawValue as? [Swift.String: Any] {
-            
-            var document = BSON.Document()
-            
-            for (key, rawValue) in rawDictionary {
-                
-                guard let bsonValue = BSON.Value(rawValue: rawValue) else { return nil }
-                
-                document[key] = bsonValue
-            }
-            
-            self = .Document(document)
-            return
-        }
-        
-        if let code = rawValue as? BSON.Code {
-            
-            self = .Code(code)
-            return
-        }
-        
-        if let objectID = rawValue as? BSON.ObjectID {
-            
-            self = .ObjectID(objectID)
-            return
-        }
-        
-        if let regularExpression = rawValue as? BSON.RegularExpression {
-            
-            self = .RegularExpression(regularExpression)
-            return
-        }
-        
-        return nil
+    public var documentValue: [String:BSON]? {
+        return try? get()
     }
-}
-
-extension BSON.Value {
-    public var nullValue: BSON.Null? {
-        switch self {
-        case .Null: return BSON.Null()
-        default: return nil
-        }
-    }
-
-    public var arrayValue: BSON.Array? {
-        switch self {
-        case .Array(let arr): return arr
-        default: return nil
-        }
-    }
-
-    public var documentValue: BSON.Document? {
-        switch self {
-        case .Document(let doc): return doc
-        default: return nil
-        }
-    }
-
-    public var numberValue: BSON.Number? {
-        switch self {
-        case .Number(let num): return num
-        default: return nil
-        }
-    }
-
+    
     public var intValue: Int? {
-        guard let num = self.numberValue else { return nil }
-
-        switch num {
-        case .Integer32(let i): return Int(i)
-        case .Integer64(let i): return Int(i)
-        default: return nil
-        }
+        return try? get()
     }
-
+    
     public var doubleValue: Double? {
-        guard let num = self.numberValue else { return nil }
-
-        switch num {
-        case .Double(let d): return d
-        default: return nil
-        }
+        return try? get()
     }
-
+    
     public var boolValue: Bool? {
-        guard let num = self.numberValue else { return nil }
-
-        switch num {
-        case .Boolean(let b): return b
-        default: return nil
-        }
+        return try? get()
     }
-
+    
     public var stringValue: Swift.String? {
+        return try? get()
+    }
+    
+//    public var dateValue: Date? {
+//        return try? get()
+//    }
+    
+    public var timestampValue: Timestamp? {
+        return try? get()
+    }
+    
+    public var binaryValue: Binary? {
+        return try? get()
+    }
+    
+    public var codeValue: Code? {
+        return try? get()
+    }
+    
+    public var objectIDValue: ObjectID? {
+        return try? get()
+    }
+    
+    public var regularExpressionValue: RegularExpression? {
+        return try? get()
+    }
+    
+    public var keyValue: Key? {
+        return try? get()
+    }
+}
+
+extension BSON {
+    public enum FetchingError: ErrorProtocol {
+        case incompatibleType
+    }
+
+    public func get<T>() throws -> T {
         switch self {
-        case .String(let str): return str
-        default: return nil
+        case .bool(let value as T):
+            return value
+        case .double(let value as T):
+            return value
+        case .string(let value as T):
+            return value
+        case .int(let value as T):
+            return value
+        case .binary(let value as T):
+            return value
+        case .array(let value as T):
+            return value
+        case .document(let value as T):
+            return value
+        default:
+            throw FetchingError.incompatibleType
         }
     }
 
-    public var dateValue: DateValue? {
-        switch self {
-        case .Date(let date): return date
-        default: return nil
+    public func get<T>(_ key: String) throws -> T {
+        if let value = self[key] {
+            return try value.get()
+        }
+
+        throw FetchingError.incompatibleType
+    }
+}
+
+extension BSON {
+    public subscript(index: Int) -> BSON? {
+        get {
+            guard let array = arrayValue where array.indices ~= index else { return nil }
+            return array[index]
+        }
+
+        set(bson) {
+            guard var array = arrayValue where array.indices ~= index else { return }
+            array[index] = bson ?? .null
+            self = .array(array)
         }
     }
 
-    public var timestampValue: BSON.Timestamp? {
-        switch self {
-        case .Timestamp(let stamp): return stamp
-        default: return nil
+    public subscript(key: String) -> BSON? {
+        get {
+            return documentValue?[key]
         }
-    }
 
-    public var binaryValue: BSON.Binary? {
-        switch self {
-        case .Binary(let binary): return binary
-        default: return nil
-        }
-    }
-
-    public var codeValue: BSON.Code? {
-        switch self {
-        case .Code(let code): return code
-        default: return nil
-        }
-    }
-
-    public var objectIDValue: BSON.ObjectID? {
-        switch self {
-        case .ObjectID(let id): return id
-        default: return nil
-        }
-    }
-
-    public var regularExpressionValue: BSON.RegularExpression? {
-        switch self {
-        case .RegularExpression(let regex): return regex
-        default: return nil
-        }
-    }
-
-    public var keyValue: BSON.Key? {
-        switch self {
-        case .MaxMinKey(let key): return key
-        default: return nil
+        set(bson) {
+            guard var document = documentValue else { return }
+            document[key] = bson
+            self = .document(document)
         }
     }
 }
 
-public extension BSON.Number {
+extension BSON {
+    public static func infer(_ value: Bool) -> BSON {
+        return .bool(value)
+    }
     
-    public var rawValue: Any {
+    public static func infer(_ value: Double) -> BSON {
+        return .double(value)
+    }
+    
+    public static func infer(_ value: Int) -> BSON {
+        return .int(value)
+    }
+    
+    public static func infer(_ value: String) -> BSON {
+        return .string(value)
+    }
+    
+    public static func infer(_ value: [BSON]) -> BSON {
+        return .array(value)
+    }
+
+    public static func infer(_ value: [String:BSON]) -> BSON {
+        return .document(value)
+    }
+
+//    public static func infer(_ value: Date) -> BSON {
+//        return .date(value)
+//    }
+
+    public static func infer(_ value: Timestamp) -> BSON {
+        return .timestamp(value)
+    }
+
+    public static func infer(_ value: Binary) -> BSON {
+        return .binary(value)
+    }
+
+    public static func infer(_ value: Code) -> BSON {
+        return .code(value)
+    }
+
+    public static func infer(_ value: ObjectID) -> BSON {
+        return .objectID(value)
+    }
+
+    public static func infer(_ value: RegularExpression) -> BSON {
+        return .regularExpression(value)
+    }
+
+    public static func infer(_ value: BinaryJSON.Key) -> BSON {
+        return .key(value)
+    }
+}
+
+/// Represents a string of Javascript code.
+public struct Code: Equatable {
+    
+    public var code: String
+    
+    public var scope: [String:BSON]?
+    
+    public init(_ code: String, scope: [String:BSON]? = nil) {
         
-        switch self {
-        case .Boolean(let value): return value
-        case .Integer32(let value): return value
-        case .Integer64(let value): return value
-        case .Double(let value):  return value
+        self.code = code
+        self.scope = scope
+    }
+}
+
+public struct Binary: Equatable {
+    
+    public enum Subtype: Byte {
+        
+        case generic    = 0x00
+        case function   = 0x01
+        case old        = 0x02
+        case uuidOld    = 0x03
+        case uuid       = 0x04
+        case md5        = 0x05
+        case user       = 0x80
+
+        var cValue: bson_subtype_t {
+            switch self {
+            case .generic: return BSON_SUBTYPE_BINARY
+            case .function: return BSON_SUBTYPE_FUNCTION
+            case .old: return BSON_SUBTYPE_BINARY_DEPRECATED
+            case .uuidOld: return BSON_SUBTYPE_UUID_DEPRECATED
+            case .uuid: return BSON_SUBTYPE_UUID
+            case .md5: return BSON_SUBTYPE_MD5
+            case .user: return BSON_SUBTYPE_USER
+            }
+        }
+
+        init(cValue: bson_subtype_t) {
+            switch cValue {
+            case BSON_SUBTYPE_BINARY: self = .generic
+            case BSON_SUBTYPE_FUNCTION: self = .function
+            case BSON_SUBTYPE_BINARY_DEPRECATED: self = .old
+            case BSON_SUBTYPE_UUID_DEPRECATED: self = .uuidOld
+            case BSON_SUBTYPE_UUID: self = .uuid
+            case BSON_SUBTYPE_MD5: self = .md5
+            case BSON_SUBTYPE_USER: self = .user
+            default: self = .user
+            }
         }
     }
     
-    public init?(rawValue: Any) {
+    public var data: Data
+    
+    public var subtype: Subtype
+    
+    public init(data: Data, subtype: Subtype = .generic) {
         
-        if let value = rawValue as? Bool            { self = .Boolean(value) }
-        if let value = rawValue as? Int32           { self = .Integer32(value) }
-        if let value = rawValue as? Int64           { self = .Integer64(value) }
-        if let value = rawValue as? Swift.Double    { self = .Double(value) }
-
-        // use Int32 as a default - maybe check type of IntMax (Int32/Int64)?
-        if let value = rawValue as? Int             { self = .Integer32(Int32(value)) }
-
-        return nil
+        self.data = data
+        self.subtype = subtype
     }
 }
 
-// MARK: - CustomStringConvertible
-
-public extension BSON.Value {
-    
-    public var description: Swift.String { return "\(rawValue)" }
+/// BSON maximum and minimum representable types.
+public enum Key {
+    case min
+    case max
 }
 
-public extension BSON.Number {
+public struct Timestamp: Equatable {
     
-    public var description: Swift.String { return "\(rawValue)" }
-}
-
-// MARK: Equatable
-
-public func ==(lhs: BSON.Value, rhs: BSON.Value) -> Bool {
+    /// Seconds since the Unix epoch.
+    public var time: UInt32
     
-    switch (lhs, rhs) {
+    /// Prdinal for operations within a given second.
+    public var oridinal: UInt32
+    
+    public init(time: UInt32, oridinal: UInt32) {
         
-    case (.Null, .Null): return true
-        
-    case let (.String(leftValue), .String(rightValue)): return leftValue == rightValue
-        
-    case let (.Number(leftValue), .Number(rightValue)): return leftValue == rightValue
-        
-    case let (.Array(leftValue), .Array(rightValue)): return leftValue == rightValue
-        
-    case let (.Document(leftValue), .Document(rightValue)): return leftValue == rightValue
-        
-    case let (.Date(leftValue), .Date(rightValue)): return leftValue == rightValue
-        
-    case let (.Timestamp(leftValue), .Timestamp(rightValue)): return leftValue == rightValue
-        
-    case let (.Binary(leftValue), .Binary(rightValue)): return leftValue == rightValue
-        
-    case let (.Code(leftValue), .Code(rightValue)): return leftValue == rightValue
-        
-    case let (.ObjectID(leftValue), .ObjectID(rightValue)): return leftValue == rightValue
-        
-    case let (.RegularExpression(leftValue), .RegularExpression(rightValue)): return leftValue == rightValue
-        
-    case let (.MaxMinKey(leftValue), .MaxMinKey(rightValue)): return leftValue == rightValue
-        
-    default: return false
+        self.time = time
+        self.oridinal = oridinal
     }
 }
 
-public func ==(lhs: BSON.Number, rhs: BSON.Number) -> Bool {
+public struct RegularExpression: Equatable {
     
-    switch (lhs, rhs) {
+    public var pattern: String
+    
+    public var options: String
+    
+    public init(_ pattern: String, options: String) {
         
-    case let (.Boolean(leftValue), .Boolean(rightValue)): return leftValue == rightValue
-        
-    case let (.Integer32(leftValue), .Integer32(rightValue)): return leftValue == rightValue
-        
-    case let (.Integer64(leftValue), .Integer64(rightValue)): return leftValue == rightValue
-        
-    case let (.Double(leftValue), .Double(rightValue)): return leftValue == rightValue
-        
-    default: return false
+        self.pattern = pattern
+        self.options = options
     }
 }
 
-public func ==(lhs: BSON.Timestamp, rhs: BSON.Timestamp) -> Bool {
+/// BSON Object Identifier.
+public struct ObjectID: RawRepresentable, Equatable, Hashable, CustomStringConvertible {
     
+    // MARK: - Properties
+    
+    public typealias ByteValue = (UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8)
+    
+    public var byteValue: ByteValue {
+        
+        get { return self.internalValue.bytes }
+        
+        set { self.internalValue.bytes = newValue }
+    }
+
+    // MARK: - Private Properties
+
+    internal var internalValue: bson_oid_t
+
+    // MARK: - Initialization
+    
+    /// Default initializer.
+    ///
+    /// Creates a new BSON ObjectID from the specified context, or the default context if none is specified.
+    public init(context: Context? = nil) {
+        
+        var objectID = bson_oid_t()
+        
+        bson_oid_init(&objectID, context?.internalPointer ?? nil)
+        
+        self.internalValue = objectID
+    }
+    
+    public init(byteValue: ByteValue) {
+        
+        self.internalValue = bson_oid_t(bytes: byteValue)
+    }
+    
+    public init?(rawValue: String) {
+        
+        // must be 24 characters
+        guard rawValue.utf8.count == 24 &&
+            bson_oid_is_valid(rawValue, rawValue.utf8.count)
+            else { return nil }
+        
+        var objectID = bson_oid_t()
+        
+        bson_oid_init_from_string_unsafe(&objectID, rawValue)
+        
+        self.internalValue = objectID
+    }
+    
+    public var rawValue: String {
+        let stringPointer = UnsafeMutablePointer<CChar>(allocatingCapacity:25)
+        
+        var objectID = internalValue
+        
+        bson_oid_to_string(&objectID, stringPointer)
+        
+        return String(cString:stringPointer)
+    }
+    
+    public var description: String {
+        return rawValue
+    }
+    
+    public var hashValue: Int {
+        var objectID = internalValue
+        
+        let hash = bson_oid_hash_unsafe(&objectID)
+        
+        return Int(hash)
+    }
+}
+
+public func ==(lhs: ObjectID, rhs: ObjectID) -> Bool {
+    var oid1 = lhs.internalValue
+    var oid2 = rhs.internalValue
+    return bson_oid_equal_unsafe(&oid1, &oid2)
+}
+
+public func ==(lhs: Timestamp, rhs: Timestamp) -> Bool {
     return lhs.time == rhs.time && lhs.oridinal == rhs.oridinal
 }
 
-public func ==(lhs: BSON.Binary, rhs: BSON.Binary) -> Bool {
-    
+public func ==(lhs: Binary, rhs: Binary) -> Bool {
     return lhs.data == rhs.data && lhs.subtype == rhs.subtype
 }
 
-public func ==(lhs: BSON.Code, rhs: BSON.Code) -> Bool {
-    
-    if let leftScope = lhs.scope {
-        
-        guard let rightScope = rhs.scope where rightScope == leftScope
-            else { return false }
+public func ==(lhs: Code, rhs: Code) -> Bool {
+    guard
+        case let (lscope?, rscope?) = (lhs.scope, rhs.scope)
+        where lscope == rscope && lhs.code == rhs.code else {
+        return false
     }
-    
-    return lhs.code == rhs.code
+
+    return true
 }
 
-public func ==(lhs: BSON.RegularExpression, rhs: BSON.RegularExpression) -> Bool {
-    
+public func ==(lhs: RegularExpression, rhs: RegularExpression) -> Bool {
     return lhs.pattern == rhs.pattern && lhs.options == rhs.options
 }
 

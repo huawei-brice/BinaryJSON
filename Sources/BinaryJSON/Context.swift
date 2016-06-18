@@ -6,41 +6,11 @@
 //  Copyright © 2015 PureSwift. All rights reserved.
 //
 
-import CBSON
+import CLibbson
 
-public extension BSON {
-    
-    public final class Context {
-        
-        /// The default, thread-safe BSON context.
-        public static let defualt = Context(options: [.ThreadSafe, .DisablePIDCache])
-        
-        // MARK: - Properties
-        
-        public let options: [Option]
-        
-        // MARK: - Internal Properties
-        
-        internal let internalPointer: OpaquePointer
-        
-        // MARK: - Initialization
-        
-        deinit { bson_context_destroy(internalPointer) }
-        
-        /// Initializes the context with the specified options.
-        public init(options: [Option] = []) {
-            
-            let flags = options.optionsBitmask()
-            
-            self.options = options
-            self.internalPointer = bson_context_new(bson_context_flags_t(rawValue: flags))
-        }
-    }
-}
+public final class Context {
 
-// MARK: - Supporting Types
-
-public extension BSON.Context {
+    // MARK: - Supporting Types
     
     public enum Option: UInt32, BitMaskOption {
         
@@ -63,8 +33,8 @@ public extension BSON.Context {
             case BSON_CONTEXT_THREAD_SAFE.rawValue: self = .ThreadSafe
             case BSON_CONTEXT_DISABLE_PID_CACHE.rawValue: self = .DisablePIDCache
             case BSON_CONTEXT_DISABLE_HOST_CACHE.rawValue: self = .DisableHostCache
-            //#if os(Linux)
-            //case BSON_CONTEXT_USE_TASK_ID.rawValue: self = .UseTaskID
+                //#if os(Linux)
+                //case BSON_CONTEXT_USE_TASK_ID.rawValue: self = .UseTaskID
             //#endif
             default: return nil
             }
@@ -76,25 +46,46 @@ public extension BSON.Context {
             case .ThreadSafe: return BSON_CONTEXT_THREAD_SAFE.rawValue
             case .DisablePIDCache: return BSON_CONTEXT_DISABLE_PID_CACHE.rawValue
             case .DisableHostCache: return BSON_CONTEXT_DISABLE_HOST_CACHE.rawValue
-            
-            //#if os(Linux)
-            //case .UseTaskID: return BSON_CONTEXT_USE_TASK_ID.rawValue
-            //#endif
+                
+                //#if os(Linux)
+                //case .UseTaskID: return BSON_CONTEXT_USE_TASK_ID.rawValue
+                //#endif
             }
         }
+    }
+
+    /// The default, thread-safe BSON context.
+    public static let defualt = Context(options: [.ThreadSafe, .DisablePIDCache])
+    
+    // MARK: - Properties
+    
+    public let options: [Option]
+    
+    // MARK: - Internal Properties
+    
+    internal let internalPointer: OpaquePointer
+    
+    // MARK: - Initialization
+    
+    deinit { bson_context_destroy(internalPointer) }
+    
+    /// Initializes the context with the specified options.
+    public init(options: [Option] = []) {
+        
+        let flags = options.optionsBitmask()
+        
+        self.options = options
+        self.internalPointer = bson_context_new(bson_context_flags_t(rawValue: flags))
     }
 }
 
 
-
-/// Bit mask that represents various options
+///// Bit mask that represents various options
 public protocol BitMaskOption: RawRepresentable {
-    
     static func optionsBitmask(options: [Self]) -> Self.RawValue
 }
 
 public extension BitMaskOption where Self.RawValue: Integer {
-    
     static func optionsBitmask<S: Sequence where S.Iterator.Element == Self>(options: S) -> Self.RawValue {
         return options.reduce(0) { mask, option in
             mask | option.rawValue
@@ -103,11 +94,7 @@ public extension BitMaskOption where Self.RawValue: Integer {
 }
 
 public extension Sequence where Self.Iterator.Element: BitMaskOption, Self.Iterator.Element.RawValue: Integer {
-    
     func optionsBitmask() -> Self.Iterator.Element.RawValue {
-        
-        let array = self.filter { (_) -> Bool in return true }
-        
-        return Self.Iterator.Element.optionsBitmask(array)
+        return Iterator.Element.optionsBitmask(options: Array(self))
     }
 }

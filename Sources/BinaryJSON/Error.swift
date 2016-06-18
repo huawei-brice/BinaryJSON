@@ -12,43 +12,38 @@
     import Glibc
 #endif
 
-import CBSON
+import CLibbson
 
-public extension BSON {
-    
-    // BSON Error
-    public struct Error: ErrorProtocol {
-        
-        /// The internal library domain of the error.
-        let domain: UInt32
-        
-        /// The error code.
-        let code: UInt32
-        
-        /// Human-readable error message. 
-        let message: String
-        
-        /// Initializes error with the values from the unsafe pointer. 
-        ///
-        /// - Precondition: The unsafe pointer is not ```nil```.
-        public init(unsafePointer: UnsafePointer<bson_error_t>) {
-            
-            assert(unsafePointer != nil, "Trying to create Error from nil pointer")
-            
-            var messageTuple = unsafePointer.pointee.message
-            
-            let message = withUnsafePointer(&messageTuple) { (unsafeTuplePointer) -> String in
-                
-                let charPointer = unsafeBitCast(_: unsafeTuplePointer, to: UnsafePointer<CChar>.self)
-                
-                let string = String(cString:charPointer)
-                
-                return string
-            }
-            
-            self.domain = unsafePointer.pointee.domain
-            self.message = message
-            self.code = unsafePointer.pointee.code
+// BSON Error
+public struct Error: ErrorProtocol {
+
+    /// The internal library domain of the error.
+    let domain: UInt32
+
+    /// The error code.
+    let code: UInt32
+
+    /// Human-readable error message. 
+    let message: String
+
+    /// Initializes error with the values from the unsafe pointer. 
+    ///
+    /// - Precondition: The unsafe pointer is not ```nil```.
+    public init(unsafePointer: UnsafePointer<bson_error_t>) {
+
+        var messageTuple = unsafePointer.pointee.message
+
+        let message = withUnsafePointer(&messageTuple) { (unsafeTuplePointer) -> String in
+
+            let charPointer = unsafeBitCast(_: unsafeTuplePointer, to: UnsafePointer<CChar>.self)
+
+            let string = String(cString:charPointer)
+
+            return string
         }
+
+        self.domain = unsafePointer.pointee.domain
+        self.message = message
+        self.code = unsafePointer.pointee.code
     }
 }

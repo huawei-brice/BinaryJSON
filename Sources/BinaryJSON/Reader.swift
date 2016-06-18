@@ -6,41 +6,34 @@
 //  Copyright © 2015 PureSwift. All rights reserved.
 //
 
-import CBSON
+import CLibbson
 
-public extension BSON {
+public final class Reader: IteratorProtocol {
     
-    public final class Reader: IteratorProtocol {
+    // MARK: - Private Properties
+    
+    private let internalPointer: UnsafeMutablePointer<bson_reader_t>
+    
+    // MARK: - Initialization
+    
+    public init(data: Data) {
         
-        // MARK: - Private Properties
-        
-        private let internalPointer: UnsafeMutablePointer<bson_reader_t>
-        
-        // MARK: - Initialization
-        
-        public init(data: Data) {
-            
-            self.internalPointer = bson_reader_new_from_data(data.byteValue, data.byteValue.count)
+        self.internalPointer = bson_reader_new_from_data(data.byteValue, data.byteValue.count)
+    }
+    
+    deinit { bson_reader_destroy(internalPointer) }
+    
+    // MARK: - Methods
+    
+    public func next() -> [String:BSON]? {
+        var eof = false
+
+        guard let valuePointer = bson_reader_read(internalPointer, &eof) else {
+            return nil
         }
-        
-        deinit { bson_reader_destroy(internalPointer) }
-        
-        // MARK: - Methods
-        
-        public func next() -> BSON.Document? {
-            
-            var eof = false
-            
-            let valuePointer = bson_reader_read(internalPointer, &eof)
-            
-            guard valuePointer != nil else { return nil }
-            
-            // convert to document
-            guard let document = BSON.documentFromUnsafePointer(UnsafeMutablePointer<bson_t>(valuePointer))
-                else { return nil }
-            
-            return document
-        }
+
+        let container = AutoReleasingBSONContainer(bson: UnsafeMutablePointer(valuePointer))
+        return container.retrieveDocument()
     }
 }
 
