@@ -6,7 +6,8 @@
 //  Copyright © 2015 PureSwift. All rights reserved.
 //
 
-import CLibbson
+@_exported import CLibbson
+import Foundation
 
 /// [Binary JSON](http://bsonspec.org)
 public enum BSON {
@@ -17,7 +18,7 @@ public enum BSON {
     case double(Double)
     case bool(Bool)
     case string(String)
-//    case date(Date)
+    case date(NSDate)
     case timestamp(Timestamp)
     case binary(Binary)
     case code(Code)
@@ -37,7 +38,9 @@ public func ==(lhs: BSON, rhs: BSON) -> Bool {
     case let (.double(lhs), .double(rhs)): return lhs == rhs
     case let (.bool(lhs), .bool(rhs)): return lhs == rhs
     case let (.string(lhs), .string(rhs)): return lhs == rhs
-//    case let (.date(lhs), .date(rhs)): return lhs == rhs
+    case let (.date(lhs), .date(rhs)):
+        // Float32 because NSDate is more accurate than MongoDB
+        return Float32(lhs.timeIntervalSince1970) == Float32(rhs.timeIntervalSince1970)
     case let (.timestamp(lhs), .timestamp(rhs)): return lhs == rhs
     case let (.binary(lhs), .binary(rhs)): return lhs == rhs
     case let (.code(lhs), .code(rhs)): return lhs == rhs
@@ -48,7 +51,7 @@ public func ==(lhs: BSON, rhs: BSON) -> Bool {
     }
 }
 
-extension BSON {
+public extension BSON {
     public var arrayValue: [BSON]? {
         return try? get()
     }
@@ -73,9 +76,9 @@ extension BSON {
         return try? get()
     }
     
-//    public var dateValue: Date? {
-//        return try? get()
-//    }
+    public var dateValue: NSDate? {
+        return try? get()
+    }
     
     public var timestampValue: Timestamp? {
         return try? get()
@@ -102,26 +105,38 @@ extension BSON {
     }
 }
 
-extension BSON {
+public extension BSON {
     public enum FetchingError: ErrorProtocol {
         case incompatibleType
     }
 
     public func get<T>() throws -> T {
         switch self {
-        case .bool(let value as T):
-            return value
-        case .double(let value as T):
-            return value
-        case .string(let value as T):
-            return value
-        case .int(let value as T):
-            return value
-        case .binary(let value as T):
-            return value
         case .array(let value as T):
             return value
         case .document(let value as T):
+            return value
+        case .int(let value as T):
+            return value
+        case .double(let value as T):
+            return value
+        case .bool(let value as T):
+            return value
+        case .string(let value as T):
+            return value
+        case .date(let value as T):
+            return value
+        case .timestamp(let value as T):
+            return value
+        case .binary(let value as T):
+            return value
+        case .code(let value as T):
+            return value
+        case .objectID(let value as T):
+            return value
+        case .regularExpression(let value as T):
+            return value
+        case .key(let value as T):
             return value
         default:
             throw FetchingError.incompatibleType
@@ -137,7 +152,7 @@ extension BSON {
     }
 }
 
-extension BSON {
+public extension BSON {
     public subscript(index: Int) -> BSON? {
         get {
             guard let array = arrayValue where array.indices ~= index else { return nil }
@@ -164,7 +179,7 @@ extension BSON {
     }
 }
 
-extension BSON {
+public extension BSON {
     public static func infer(_ value: Bool) -> BSON {
         return .bool(value)
     }
@@ -189,9 +204,9 @@ extension BSON {
         return .document(value)
     }
 
-//    public static func infer(_ value: Date) -> BSON {
-//        return .date(value)
-//    }
+    public static func infer(_ value: NSDate) -> BSON {
+        return .date(value)
+    }
 
     public static func infer(_ value: Timestamp) -> BSON {
         return .timestamp(value)
@@ -361,7 +376,7 @@ public struct ObjectID: RawRepresentable, Equatable, Hashable, CustomStringConve
         
         var objectID = bson_oid_t()
         
-        bson_oid_init_from_string_unsafe(&objectID, rawValue)
+        bson_oid_init_from_string(&objectID, rawValue)
         
         self.internalValue = objectID
     }
@@ -383,7 +398,7 @@ public struct ObjectID: RawRepresentable, Equatable, Hashable, CustomStringConve
     public var hashValue: Int {
         var objectID = internalValue
         
-        let hash = bson_oid_hash_unsafe(&objectID)
+        let hash = bson_oid_hash(&objectID)
         
         return Int(hash)
     }
@@ -392,7 +407,7 @@ public struct ObjectID: RawRepresentable, Equatable, Hashable, CustomStringConve
 public func ==(lhs: ObjectID, rhs: ObjectID) -> Bool {
     var oid1 = lhs.internalValue
     var oid2 = rhs.internalValue
-    return bson_oid_equal_unsafe(&oid1, &oid2)
+    return bson_oid_equal(&oid1, &oid2)
 }
 
 public func ==(lhs: Timestamp, rhs: Timestamp) -> Bool {
@@ -404,13 +419,18 @@ public func ==(lhs: Binary, rhs: Binary) -> Bool {
 }
 
 public func ==(lhs: Code, rhs: Code) -> Bool {
-    guard
-        case let (lscope?, rscope?) = (lhs.scope, rhs.scope)
-        where lscope == rscope && lhs.code == rhs.code else {
+    guard lhs.code == rhs.code else {
         return false
     }
 
-    return true
+    switch (lhs.scope, rhs.scope) {
+    case let (lscope?, rscope?) where lscope == rscope:
+        return true
+    case (.none, .none):
+        return true
+    default:
+        return false
+    }
 }
 
 public func ==(lhs: RegularExpression, rhs: RegularExpression) -> Bool {

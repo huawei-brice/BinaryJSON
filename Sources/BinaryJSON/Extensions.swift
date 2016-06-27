@@ -6,6 +6,8 @@
 //  Copyright © 2015 PureSwift. All rights reserved.
 //
 
+import Foundation
+
 public protocol BSONRepresentable {
     var bson: BSON { get }
 }
@@ -76,15 +78,16 @@ extension ObjectID: BSONConvertible {
     }
 }
 
-//extension Date: BSONConvertible {
-//    public var bson: BSON {
-//        return .infer(self)
-//    }
-//    
+extension NSDate: BSONRepresentable {
+    public var bson: BSON {
+        return .infer(self)
+    }
+
 //    public init(bson: BSON) throws {
-//        self = try bson.get()
+//        let date: NSDate = try bson.get()
+//        self.init(timeIntervalSince1970: date.timeIntervalSince1970)
 //    }
-//}
+}
 
 extension RegularExpression: BSONConvertible {
     public var bson: BSON {
@@ -188,7 +191,7 @@ extension BSON: DictionaryLiteralConvertible {
 }
 
 
-extension Dictionary {
+public extension Dictionary {
     public func mapValues<T>(_ transform: @noescape (Value) throws -> T) rethrows -> [Key: T] {
         var transformed = [Key:T]()
         for (key, value) in self {

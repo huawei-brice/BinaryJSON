@@ -7,10 +7,17 @@
 //
 
 import XCTest
-@testable import BinaryJSON
-import CLibbson
+import BinaryJSON
 
 class BSONTests: XCTestCase {
+
+    func testEquality() {
+        let document = sampleDocument()
+
+        for key in document.keys {
+            XCTAssertEqual(document[key], document[key])
+        }
+    }
 
     func testUnsafePointer() throws {
 
@@ -19,14 +26,12 @@ class BSONTests: XCTestCase {
         // create from pointer
         do {
 
-            print("Document: \n\(document)\n")
-
             let container = try AutoReleasingBSONContainer(document: document)
             let newDocument = container.retrieveDocument()
 
-            print("New Document: \n\(document)\n")
-
-            XCTAssert(newDocument == document, "\(newDocument) == \(document)")
+            for key in document.keys {
+                XCTAssertEqual(document[key], newDocument[key])
+            }
         }
 
         // try to create a 2nd time, to make sure we didnt modify the unsafe pointer
@@ -35,7 +40,9 @@ class BSONTests: XCTestCase {
             let container = try AutoReleasingBSONContainer(document: document)
             let newDocument = container.retrieveDocument()
 
-            XCTAssert(newDocument == document, "\(newDocument) == \(document)")
+            for key in document.keys {
+                XCTAssertEqual(document[key], newDocument[key])
+            }
         }
     }
 
@@ -99,8 +106,6 @@ extension BSONTests {
 
 func sampleDocument() -> [String:BSON] {
 
-//    let time = TimeInterval(Int(timeIntervalSince1970()))
-
     var document = [String:BSON]()
 
     // build BSON document
@@ -118,7 +123,7 @@ func sampleDocument() -> [String:BSON] {
         document["regex"] = .infer(RegularExpression("pattern", options: ""))
         document["code"] = .infer(Code("js code"))
         document["code with scope"] = .infer(Code("JS code", scope: ["myVariable": "value"]))
-//        document["date"] = .infer(Date(timeIntervalSince1970: time))
+        document["date"] = .infer(NSDate())
         document["timestamp"] = .infer(Timestamp(time: 10, oridinal: 1))
         document["minkey"] = .infer(Key.min)
         document["maxkey"] = .infer(Key.max)

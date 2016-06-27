@@ -7,6 +7,7 @@
 //
 
 import CLibbson
+import Foundation
 
 public protocol BSONPointerContainer {
     init(bson: UnsafeMutablePointer<bson_t>)
@@ -44,7 +45,7 @@ public final class AutoReleasingBSONContainer: BSONPointerContainer {
     }
 }
 
-final class BSONAppender {
+public final class BSONAppender {
     enum Error: ErrorProtocol {
         case overflow
     }
@@ -98,9 +99,9 @@ final class BSONAppender {
         case let .double(value):
             try appender1(bson_append_double, value)
 
-        // case let .date(date):
-        //     var time = timeval(timeInterval: date.timeIntervalSince1970)
-        //     try appender1(bson_append_timeval)(&time)
+         case let .date(date):
+            var time = timeval(timeInterval: date.timeIntervalSince1970)
+            try appender1(bson_append_timeval, &time)
 
         case let .timestamp(timestamp):
             try appender2(bson_append_timestamp, timestamp.time, timestamp.oridinal)
@@ -160,7 +161,7 @@ final class BSONAppender {
     }
 }
 
-final class BSONIterator: IteratorProtocol, Sequence {
+public final class BSONIterator: IteratorProtocol, Sequence {
     let pointer: UnsafeMutablePointer<bson_iter_t>
 
     init() {
@@ -189,7 +190,7 @@ final class BSONIterator: IteratorProtocol, Sequence {
         return document
     }
 
-    func next() -> (String, BSON)? {
+    public func next() -> (String, BSON)? {
         guard bson_iter_next(pointer) else {
             return nil
         }
@@ -198,35 +199,35 @@ final class BSONIterator: IteratorProtocol, Sequence {
 
     private func nextPair() -> (String, BSON)? {
 
-        let key = String(validatingUTF8: bson_iter_key_unsafe(pointer))!
+        let key = String(validatingUTF8: bson_iter_key(pointer))!
 
-        let type = bson_iter_type_unsafe(pointer)
+        let type = bson_iter_type(pointer)
 
         switch type {
 
         case BSON_TYPE_DOUBLE:
-            let value = bson_iter_double_unsafe(pointer)
+            let value = bson_iter_double(pointer)
             return (key, value.bson)
 
         case BSON_TYPE_UTF8:
-            let value = String(validatingUTF8: bson_iter_utf8_unsafe(pointer, nil))!
+            let value = String(validatingUTF8: bson_iter_utf8(pointer, nil))!
             return (key, value.bson)
 
         case BSON_TYPE_DOCUMENT:
-            let childPointer = UnsafeMutablePointer<bson_iter_t>(nil)
+            let childPointer = UnsafeMutablePointer<bson_iter_t>(allocatingCapacity: 1)
             // TODO: error handling
             bson_iter_recurse(pointer, childPointer)
 
-            let childIterator = BSONIterator(pointer: childPointer!)
+            let childIterator = BSONIterator(pointer: childPointer)
 
             return (key, childIterator.makeDocument().bson)
 
         case BSON_TYPE_ARRAY:
-            let childPointer = UnsafeMutablePointer<bson_iter_t>(nil)
+            let childPointer = UnsafeMutablePointer<bson_iter_t>(allocatingCapacity: 1)
             // TODO: error handling
             bson_iter_recurse(pointer, childPointer)
 
-            let childIterator = BSONIterator(pointer: childPointer!)
+            let childIterator = BSONIterator(pointer: childPointer)
             let childDocument = childIterator.makeDocument()
 
             return (key, childDocument.map { $1 }.bson)
@@ -262,23 +263,23 @@ final class BSONIterator: IteratorProtocol, Sequence {
         case BSON_TYPE_OID:
             // should not be freed
             // safe to unwrap
-            let oidPointer = bson_iter_oid_unsafe(pointer)!
+            let oidPointer = bson_iter_oid(pointer)!
             let objectID = ObjectID(byteValue: oidPointer.pointee.bytes)
             return (key, objectID.bson)
 
         case BSON_TYPE_BOOL:
-            let bool = bson_iter_bool_unsafe(pointer)
+            let bool = bson_iter_bool(pointer)
             return (key, bool.bson)
 
-//        case BSON_TYPE_DATE_TIME:
-//            let timePointer = UnsafeMutablePointer<timeval>(allocatingCapacity: 1)
-//            defer { timePointer.deallocateCapacity(1) }
-//
-//            bson_iter_timeval(pointer, timePointer)
-//
-//            let date = Date(timeIntervalSince1970: timePointer.pointee.timeIntervalValue)
-//
-//            return (key, date.bson)
+        case BSON_TYPE_DATE_TIME:
+            let timePointer = UnsafeMutablePointer<timeval>(allocatingCapacity: 1)
+            defer { timePointer.deallocateCapacity(1) }
+
+            bson_iter_timeval(pointer, timePointer)
+
+            let date = NSDate(timeIntervalSince1970: timePointer.pointee.TimeIntervalValue)
+
+            return (key, date.bson)
 
         case BSON_TYPE_NULL:
             return (key, .null)
@@ -301,7 +302,7 @@ final class BSONIterator: IteratorProtocol, Sequence {
             return (key, regex.bson)
 
         case BSON_TYPE_CODE:
-            let buffer = bson_iter_code_unsafe(pointer, nil)!
+            let buffer = bson_iter_code(pointer, nil)!
             let codeString = String(validatingUTF8: buffer)!
             let code = Code(codeString)
 
@@ -329,11 +330,11 @@ final class BSONIterator: IteratorProtocol, Sequence {
             return (key, code.bson)
 
         case BSON_TYPE_INT32:
-            let int = bson_iter_int32_unsafe(pointer)
+            let int = bson_iter_int32(pointer)
             return (key, Int(int).bson)
 
         case BSON_TYPE_INT64:
-            let int = bson_iter_int64_unsafe(pointer)
+            let int = bson_iter_int64(pointer)
             return (key, Int(int).bson)
 
         case BSON_TYPE_TIMESTAMP:
@@ -361,264 +362,8 @@ final class BSONIterator: IteratorProtocol, Sequence {
 // Get underlying document
 public extension BSONPointerContainer {
     /// Get underlying document
-    func retrieveDocument() -> [String:BSON] {
+    public func retrieveDocument() -> [String:BSON] {
         let iterator = BSONIterator(documentPointer: self.pointer)
         return iterator.makeDocument()
     }
 }
-
-//extension UnsafeMutablePointer {
-//    /// Creates an unsafe pointer of a BSON document for use with the C API.
-//    ///
-//    /// Make sure to use ```bson_destroy``` clean up the allocated BSON document.
-//    static func create(document: [String:BSON]) -> AutoReleasingCarrier? {
-//
-//    }
-//
-//    static func appendBSON(pointer: UnsafeMutablePointer<bson_t>, key: String, valueBSON) {
-//
-//    }
-//}
-
-///// Creates a ```[String:BSON]``` from an unsafe pointer.
-/////
-///// - Precondition: The ```bson_t``` must be valid.
-//func documentFromUnsafePointer(pointer: UnsafePointer<bson_t>) -> [String:BSON]? {
-//
-//    var iterator = bson_iter_t()
-//
-//    guard bson_iter_init(&iterator, pointer) == true
-//        else { return nil }
-//
-//    var document = [String:BSON]()
-//
-//    guard iterate(&document, iterator: &iterator) == true
-//        else { return nil }
-//
-//    return document
-//}
-
-//
-///// iterate and append values to document
-//func iterate( document: inout [String:BSON], iterator: inout bson_iter_t) -> Bool {
-//
-//    while bson_iter_next(&iterator) {
-//
-//        // key char buffer should not be changed or freed
-//        let keyBuffer = bson_iter_key_unsafe(&iterator)
-//
-//        let key = String(cString:keyBuffer)
-//
-//        let type = bson_iter_type_unsafe(&iterator)
-//
-//        var value: BSON?
-//
-//        switch type {
-//
-//        case BSON_TYPE_DOUBLE:
-//
-//            let double = bson_iter_double_unsafe(&iterator)
-//
-//            value = .Number(.Double(double))
-//
-//        case BSON_TYPE_UTF8:
-//
-//            var length = 0
-//
-//            let buffer = bson_iter_utf8_unsafe(&iterator, &length)
-//
-//            let string = String(cString:buffer)
-//
-//            value = .String(string)
-//
-//        case BSON_TYPE_DOCUMENT:
-//
-//            var childIterator = bson_iter_t()
-//
-//            var childDocument = [String:BSON]()
-//
-//            guard bson_iter_recurse(&iterator, &childIterator) &&
-//                iterate(&childDocument, iterator: &childIterator)
-//                else { return false }
-//
-//            value = .Document(childDocument)
-//
-//        case BSON_TYPE_ARRAY:
-//
-//            var childIterator = bson_iter_t()
-//
-//            var childDocument = [String:BSON]()
-//
-//            guard bson_iter_recurse(&iterator, &childIterator) &&
-//                iterate(&childDocument, iterator: &childIterator)
-//                else { return false }
-//
-//            let array = childDocument.map { (key, value) in return value }
-//
-//            value = .Array(array)
-//
-//        case BSON_TYPE_BINARY:
-//
-//            var subtype = bson_subtype_t(rawValue: 0)
-//
-//            var length: UInt32 = 0
-//
-//            let bufferPointer = UnsafeMutablePointer<UnsafePointer<UInt8>>(allocatingCapacity:1)
-//
-//            bson_iter_binary(&iterator, &subtype, &length, bufferPointer)
-//
-//            var bytes: [UInt8] = [UInt8](repeating: 0, count: Int(length))
-//
-//            memcpy(&bytes, bufferPointer.pointee, Int(length))
-//
-//            let data = Data(byteValue: bytes)
-//
-//            let binarySubtype: Binary.Subtype
-//
-//            switch subtype {
-//
-//            case BSON_SUBTYPE_BINARY: binarySubtype = .Generic
-//            case BSON_SUBTYPE_FUNCTION: binarySubtype = .Function
-//            case BSON_SUBTYPE_BINARY_DEPRECATED: binarySubtype = .Old
-//            case BSON_SUBTYPE_UUID_DEPRECATED: binarySubtype = .UUIDOld
-//            case BSON_SUBTYPE_UUID: binarySubtype = .UUID
-//            case BSON_SUBTYPE_MD5: binarySubtype = .MD5
-//            case BSON_SUBTYPE_USER: binarySubtype = .User
-//
-//            default: binarySubtype = .User
-//            }
-//
-//            let binary = Binary(data: data, subtype: binarySubtype)
-//
-//            value = .Binary(binary)
-//
-//        // deprecated, no bindings
-//        case BSON_TYPE_DBPOINTER, BSON_TYPE_UNDEFINED, BSON_TYPE_SYMBOL: value = nil
-//
-//        case BSON_TYPE_OID:
-//
-//            /// should not be freed
-//            let oidPointer = bson_iter_oid_unsafe(&iterator)
-//
-//            let objectID = ObjectID(byteValue: oidPointer.pointee.bytes)
-//
-//            value = .ObjectID(objectID)
-//
-//        case BSON_TYPE_BOOL:
-//
-//            let boolean = bson_iter_bool_unsafe(&iterator)
-//
-//            value = .Number(.Boolean(boolean))
-//
-//        case BSON_TYPE_DATE_TIME:
-//
-//            var time = timeval()
-//
-//            bson_iter_timeval(&iterator, &time)
-//
-//            let date = Date(timeIntervalSince1970: time.timeIntervalValue)
-//
-//            value = .Date(date)
-//
-//        case BSON_TYPE_NULL:
-//
-//            value = .Null
-//
-//        case BSON_TYPE_REGEX:
-//
-//            let optionsBufferPointer = UnsafeMutablePointer<UnsafePointer<CChar>>(allocatingCapacity:1)
-//
-//            let patternBuffer = bson_iter_regex(&iterator, optionsBufferPointer)
-//
-//            let optionsBuffer = optionsBufferPointer.pointee
-//
-//            let options = String(cString:optionsBuffer)
-//
-//            let pattern = String(cString:patternBuffer)
-//
-//            let regex = RegularExpression(pattern, options: options)
-//
-//            value = .RegularExpression(regex)
-//
-//        case BSON_TYPE_CODE:
-//
-//            var length: UInt32 = 0
-//
-//            let buffer = bson_iter_code_unsafe(&iterator, &length)
-//
-//            let codeString = String(cString:buffer)
-//
-//            let code = Code(codeString)
-//
-//            value = .Code(code)
-//
-//        case BSON_TYPE_CODEWSCOPE:
-//
-//            var codeLength: UInt32 = 0
-//
-//            var scopeLength: UInt32 = 0
-//
-//            let scopeBuffer = UnsafeMutablePointer<UnsafePointer<UInt8>>(allocatingCapacity:1)
-//
-//            defer { scopeBuffer.deinitialize(); scopeBuffer.deallocateCapacity(1) }
-//
-//            let buffer = bson_iter_codewscope(&iterator, &codeLength, &scopeLength, scopeBuffer)
-//
-//            let codeString = String(cString:buffer)
-//
-//            var scopeBSON = bson_t()
-//
-//            guard bson_init_static(&scopeBSON, scopeBuffer.pointee, Int(scopeLength))
-//                else { return false }
-//
-//            guard let scopeDocument = documentFromUnsafePointer(&scopeBSON)
-//                else { fatalError("Could not ") }
-//
-//            let code = Code(codeString, scope: scopeDocument)
-//
-//            value = .Code(code)
-//
-//        case BSON_TYPE_INT32:
-//
-//            let integer = bson_iter_int32_unsafe(&iterator)
-//
-//            value = .Number(.Integer32(integer))
-//
-//        case BSON_TYPE_INT64:
-//
-//            let integer = bson_iter_int64_unsafe(&iterator)
-//
-//            value = .Number(.Integer64(integer))
-//
-//        case BSON_TYPE_TIMESTAMP:
-//
-//            var time: UInt32 = 0
-//
-//            var increment: UInt32 = 0
-//
-//            bson_iter_timestamp(&iterator, &time, &increment)
-//
-//            let timestamp = Timestamp(time: time, oridinal: increment)
-//
-//            value = .Timestamp(timestamp)
-//
-//        case BSON_TYPE_MAXKEY:
-//
-//            value = .MaxMinKey(.Maximum)
-//
-//        case BSON_TYPE_MINKEY:
-//
-//            value = .MaxMinKey(.Minimum)
-//
-//        default: fatalError("Case \(type) not implemented")
-//        }
-//
-//        // add key / value pair
-//        if let value = value {
-//
-//            document[key] = value
-//        }
-//    }
-//
-//    return true
-//}
