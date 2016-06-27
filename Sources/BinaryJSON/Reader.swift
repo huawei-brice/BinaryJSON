@@ -18,7 +18,7 @@ public final class Reader: IteratorProtocol {
     
     public init(data: Data) {
         
-        self.internalPointer = bson_reader_new_from_data(data.byteValue, data.byteValue.count)
+        self.internalPointer = bson_reader_new_from_data(data.bytes, data.bytes.count)
     }
     
     deinit { bson_reader_destroy(internalPointer) }
@@ -35,61 +35,4 @@ public final class Reader: IteratorProtocol {
         let container = AutoReleasingBSONContainer(bson: UnsafeMutablePointer(valuePointer))
         return container.retrieveDocument()
     }
-}
-
-/// Encapsulates data.
-public struct Data: ByteValueType, Equatable {
-    
-    public var byteValue: [Byte]
-    
-    public init(byteValue: [Byte] = []) {
-        
-        self.byteValue = byteValue
-    }
-}
-
-public typealias Byte = UInt8
-
-public extension Data {
-    
-    /// Initializes ```Data``` from an unsafe byte pointer.
-    ///
-    /// - Precondition: The pointer  points to a type exactly a byte long.
-    static func fromBytePointer<T: Any>(pointer: UnsafePointer<T>, length: Int) -> Data {
-        
-        assert(sizeof(pointer.pointee.dynamicType) == sizeof(Byte.self), "Cannot create array of bytes from pointer to \(pointer.pointee.dynamicType) because the type is larger than a single byte.")
-        
-        var buffer: [UInt8] = [UInt8](repeating: 0, count: length)
-        
-        memcpy(&buffer, pointer, length)
-        
-        return Data(byteValue: buffer)
-    }
-}
-
-// MARK: - Equatable
-
-public func == (lhs: Data, rhs: Data) -> Bool {
-    
-    guard lhs.byteValue.count == rhs.byteValue.count else { return false }
-    
-    var bytes1 = lhs.byteValue
-    
-    var bytes2 = rhs.byteValue
-    
-    return memcmp(&bytes1, &bytes2, lhs.byteValue.count) == 0
-}
-
-
-/// Stores a primitive value.
-///
-/// Useful for Swift wrappers for C primitives.
-public protocol ByteValueType {
-    
-    associatedtype ByteValue
-    
-    /// Returns the primitive type.
-    var byteValue: ByteValue { get }
-    
-    init(byteValue: ByteValue)
 }

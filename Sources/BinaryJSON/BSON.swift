@@ -6,6 +6,7 @@
 //  Copyright © 2015 PureSwift. All rights reserved.
 //
 
+@_exported import C7
 @_exported import CLibbson
 import Foundation
 
@@ -285,11 +286,11 @@ public struct Binary: Equatable {
         }
     }
     
-    public var data: Data
+    public var data: C7.Data
     
     public var subtype: Subtype
     
-    public init(data: Data, subtype: Subtype = .generic) {
+    public init(data: C7.Data, subtype: Subtype = .generic) {
         
         self.data = data
         self.subtype = subtype
@@ -436,4 +437,3 @@ public func ==(lhs: Code, rhs: Code) -> Bool {
 public func ==(lhs: RegularExpression, rhs: RegularExpression) -> Bool {
     return lhs.pattern == rhs.pattern && lhs.options == rhs.options
 }
-

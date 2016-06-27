@@ -118,7 +118,7 @@ func sampleDocument() -> [String:BSON] {
         document["string"] = "Text"
         document["array"] = [["key": ["subarray string"]]]
         document["objectID"] = .infer(ObjectID())
-        document["data"] = .infer(Binary(data: Data(byteValue: [] + "test".utf8)))
+        document["data"] = .infer(Binary(data: Data([] + "test".utf8)))
         document["null"] = .null
         document["regex"] = .infer(RegularExpression("pattern", options: ""))
         document["code"] = .infer(Code("js code"))

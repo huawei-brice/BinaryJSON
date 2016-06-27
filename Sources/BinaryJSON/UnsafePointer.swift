@@ -107,7 +107,7 @@ public final class BSONAppender {
             try appender2(bson_append_timestamp, timestamp.time, timestamp.oridinal)
 
         case let .binary(binary):
-            try appender3(bson_append_binary, binary.subtype.cValue, binary.data.byteValue, UInt32(binary.data.byteValue.count))
+            try appender3(bson_append_binary, binary.subtype.cValue, binary.data.bytes, UInt32(binary.data.bytes.count))
 
         case let .regularExpression(regex):
             try appender2(bson_append_regex, regex.pattern, regex.options)
@@ -250,7 +250,7 @@ public final class BSONIterator: IteratorProtocol, Sequence {
             memcpy(&bytes, bufferPointer.pointee, Int(lengthPointer.pointee))
 
             let binary = Binary(
-                data: Data(byteValue: bytes),
+                data: C7.Data(bytes),
                 subtype: Binary.Subtype(cValue: subtypePointer.pointee)
             )
 
