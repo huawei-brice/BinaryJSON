@@ -135,15 +135,15 @@ public extension Dictionary where Key: StringLiteralConvertible, Value: BSONRepr
 }
 
 extension BSON: StringLiteralConvertible {
-    public init(unicodeScalarLiteral value: Swift.String) {
+    public init(unicodeScalarLiteral value: String) {
         self = .infer(value)
     }
 
-    public init(extendedGraphemeClusterLiteral value: Swift.String) {
+    public init(extendedGraphemeClusterLiteral value: String) {
         self = .infer(value)
     }
 
-    public init(stringLiteral value: StringLiteralType) {
+    public init(stringLiteral value: String) {
         self = .infer(value)
     }
 }
@@ -179,7 +179,7 @@ extension BSON: ArrayLiteralConvertible {
 }
 
 extension BSON: DictionaryLiteralConvertible {
-    public init(dictionaryLiteral elements: (Swift.String, BSON)...) {
+    public init(dictionaryLiteral elements: (String, BSON)...) {
         var dictionary = [String:BSON](minimumCapacity: elements.count)
 
         for pair in elements {

@@ -10,20 +10,20 @@ import CLibbson
 
 public final class Reader: IteratorProtocol {
 
-    private let internalPointer: UnsafeMutablePointer<bson_reader_t>
+    private let pointer: UnsafeMutablePointer<bson_reader_t>
 
     public init(data: Data) {
-        self.internalPointer = bson_reader_new_from_data(data.bytes, data.bytes.count)
+        self.pointer = bson_reader_new_from_data(data.bytes, data.bytes.count)
     }
 
     deinit {
-        bson_reader_destroy(internalPointer)
+        bson_reader_destroy(pointer)
     }
 
     public func next() -> [String:BSON]? {
         var eof = false
 
-        guard let valuePointer = bson_reader_read(internalPointer, &eof) else {
+        guard let valuePointer = bson_reader_read(pointer, &eof) else {
             return nil
         }
 

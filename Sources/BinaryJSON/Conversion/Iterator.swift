@@ -1,171 +1,23 @@
 //
-//  UnsafePointer.swift
-//  BSON
+//  Iterator.swift
+//  BinaryJSON
 //
-//  Created by Alsey Coleman Miller on 12/13/15.
-//  Copyright © 2015 PureSwift. All rights reserved.
+//  Created by Dan Appel on 06/27/16.
+//  Copyright © 2016 Dan Appel. All rights reserved.
 //
 
-import CLibbson
 import Foundation
+import CLibbson
 
-public protocol BSONPointerContainer {
-    init(bson: UnsafeMutablePointer<bson_t>)
-    var pointer: UnsafeMutablePointer<bson_t> {get}
-}
-
-public extension BSONPointerContainer {
-    init() {
-        self.init(bson: bson_new())
-    }
-
-    init(document: [String:BSON]) throws {
-        self.init()
-        let appender = BSONAppender(container: self)
-        try document.forEach(appender.append)
-    }
-
-    init(array: [BSON]) throws {
-        self.init()
-        let appender = BSONAppender(container: self)
-        try array.enumerated().forEach { try appender.append(key: "\($0)", value: $1) }
-    }
-}
-
-/// Carries an UnsafeMutablePointer<bson_t> and calls `bson_destroy` on it upon deinitialization.
-public final class AutoReleasingBSONContainer: BSONPointerContainer {
-    public let pointer: UnsafeMutablePointer<bson_t>
-
-    public init(bson: UnsafeMutablePointer<bson_t>) {
-        self.pointer = bson
-    }
-
-    deinit {
-        bson_destroy(self.pointer)
-    }
-}
-
-public final class BSONAppender {
-    enum Error: ErrorProtocol {
-        case overflow
-    }
-
-    let container: BSONPointerContainer
-    init(container: BSONPointerContainer) {
-        self.container = container
-    }
-
-    func append(key: String, value: BSON) throws {
-
-        let keyLength = Int32(key.utf8.count)
-
-        // to reduce boilerplate a little, we need to have a little boilerplate
-        func appender0(_ f: (UnsafeMutablePointer<bson_t>, UnsafePointer<Int8>, Int32) -> Bool) throws {
-            guard f(self.container.pointer, key, keyLength) else {
-                throw Error.overflow
-            }
-        }
-        func appender1<T>(_ f: (UnsafeMutablePointer<bson_t>, UnsafePointer<Int8>, Int32, T) -> Bool, _ t: T) throws {
-            guard f(self.container.pointer, key, keyLength, t) else {
-                throw Error.overflow
-            }
-        }
-        func appender2<T, U>(_ f: (UnsafeMutablePointer<bson_t>, UnsafePointer<Int8>, Int32, T, U) -> Bool, _ t: T, _ u: U) throws {
-            guard f(self.container.pointer, key, keyLength, t, u) else {
-                throw Error.overflow
-            }
-        }
-        func appender3<T, U, V>(_ f: (UnsafeMutablePointer<bson_t>, UnsafePointer<Int8>, Int32, T, U, V) -> Bool, _ t: T, _ u: U, _ v: V) throws {
-            guard f(self.container.pointer, key, keyLength, t, u, v) else {
-                throw Error.overflow
-            }
-        }
-
-        switch value {
-
-        case .null:
-            try appender0(bson_append_null)
-
-        case let .string(string):
-            try appender2(bson_append_utf8, string, Int32(string.utf8.count))
-
-        case let .bool(value):
-            try appender1(bson_append_bool, value)
-
-        case let .int(value):
-            // TODO: Don't make assumptions about 64bit
-            try appender1(bson_append_int64, Int64(value))
-
-        case let .double(value):
-            try appender1(bson_append_double, value)
-
-         case let .date(date):
-            var time = timeval(timeInterval: date.timeIntervalSince1970)
-            try appender1(bson_append_timeval, &time)
-
-        case let .timestamp(timestamp):
-            try appender2(bson_append_timestamp, timestamp.time, timestamp.ordinal)
-
-        case let .binary(binary):
-            try appender3(bson_append_binary, binary.subtype.cValue, binary.data.bytes, UInt32(binary.data.bytes.count))
-
-        case let .regularExpression(regex):
-            try appender2(bson_append_regex, regex.pattern, regex.options)
-
-        case let .key(keyType):
-            switch keyType {
-            case .max:
-                try appender0(bson_append_maxkey)
-            case .min:
-                try appender0(bson_append_minkey)
-            }
-
-        case let .code(code):
-            switch code.scope {
-            case .some(let scope):
-                try appender2(bson_append_code_with_scope, code.code, AutoReleasingBSONContainer(document: scope).pointer)
-            case .none:
-                try appender1(bson_append_code, code.code)
-            }
-
-        case let .objectID(objectID):
-            var value = objectID.internalValue
-            try appender1(bson_append_oid, &value)
-
-        case let .document(childDocument):
-
-            let childContainer = AutoReleasingBSONContainer()
-
-            try appender1(bson_append_document_begin, childContainer.pointer)
-
-            let childAppender = BSONAppender(container: childContainer)
-            try childDocument.forEach(childAppender.append)
-
-            guard bson_append_document_end(container.pointer, childContainer.pointer) else {
-                throw Error.overflow
-            }
-
-        case let .array(array):
-
-            let childContainer = AutoReleasingBSONContainer()
-
-            try appender1(bson_append_array_begin, childContainer.pointer)
-
-            let childAppender = BSONAppender(container: childContainer)
-            try array.enumerated().forEach { try childAppender.append(key: "\($0)", value: $1) }
-
-            guard bson_append_array_end(container.pointer, childContainer.pointer) else {
-                throw Error.overflow
-            }
-        }
-    }
-}
-
-public final class BSONIterator: IteratorProtocol, Sequence {
+public final class Iterator: IteratorProtocol {
     let pointer: UnsafeMutablePointer<bson_iter_t>
 
-    init() {
-        self.pointer = UnsafeMutablePointer(allocatingCapacity: 1)
+    init(pointer: UnsafeMutablePointer<bson_iter_t>) {
+        self.pointer = pointer
+    }
+
+    convenience init() {
+        self.init(pointer: UnsafeMutablePointer(allocatingCapacity: 1))
     }
 
     convenience init(documentPointer: UnsafeMutablePointer<bson_t>) {
@@ -173,18 +25,13 @@ public final class BSONIterator: IteratorProtocol, Sequence {
         bson_iter_init(self.pointer, documentPointer)
     }
 
-    init(pointer: UnsafeMutablePointer<bson_iter_t>) {
-        self.pointer = pointer
-    }
-
-
     deinit {
         self.pointer.deallocateCapacity(1)
     }
 
-    func makeDocument() -> [String:BSON] {
+    public func makeDocument() -> [String:BSON] {
         var document = [String:BSON]()
-        for (key, value) in self {
+        while let (key, value) = self.next() {
             document[key] = value
         }
         return document
@@ -203,7 +50,7 @@ public final class BSONIterator: IteratorProtocol, Sequence {
 
         let type = bson_iter_type(pointer)
 
-        switch type {
+        switch bson_iter_type(pointer) {
 
         case BSON_TYPE_DOUBLE:
             let value = bson_iter_double(pointer)
@@ -218,7 +65,7 @@ public final class BSONIterator: IteratorProtocol, Sequence {
             // TODO: error handling
             bson_iter_recurse(pointer, childPointer)
 
-            let childIterator = BSONIterator(pointer: childPointer)
+            let childIterator = Iterator(pointer: childPointer)
 
             return (key, childIterator.makeDocument().bson)
 
@@ -227,7 +74,7 @@ public final class BSONIterator: IteratorProtocol, Sequence {
             // TODO: error handling
             bson_iter_recurse(pointer, childPointer)
 
-            let childIterator = BSONIterator(pointer: childPointer)
+            let childIterator = Iterator(pointer: childPointer)
             let childDocument = childIterator.makeDocument()
 
             return (key, childDocument.map { $1 }.bson)
@@ -354,16 +201,7 @@ public final class BSONIterator: IteratorProtocol, Sequence {
         case BSON_TYPE_MINKEY:
             return (key, .key(.min))
 
-        default: fatalError("Case \(type) not implemented")
+        default: fatalError("\(type) not implemented")
         }
-    }
-}
-
-// Get underlying document
-public extension BSONPointerContainer {
-    /// Get underlying document
-    public func retrieveDocument() -> [String:BSON] {
-        let iterator = BSONIterator(documentPointer: self.pointer)
-        return iterator.makeDocument()
     }
 }

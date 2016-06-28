@@ -73,7 +73,7 @@ public extension BSON {
         return try? get()
     }
 
-    public var stringValue: Swift.String? {
+    public var stringValue: String? {
         return try? get()
     }
 
