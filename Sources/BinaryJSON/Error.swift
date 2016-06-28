@@ -15,7 +15,7 @@
 import CLibbson
 
 // BSON Error
-public struct Error: ErrorProtocol {
+public struct BSONError: ErrorProtocol {
 
     /// The internal library domain of the error.
     let domain: UInt32
@@ -23,23 +23,18 @@ public struct Error: ErrorProtocol {
     /// The error code.
     let code: UInt32
 
-    /// Human-readable error message. 
+    /// Human-readable error message.
     let message: String
 
-    /// Initializes error with the values from the unsafe pointer. 
+    /// Initializes error with the values from the unsafe pointer.
     ///
     /// - Precondition: The unsafe pointer is not ```nil```.
     public init(unsafePointer: UnsafePointer<bson_error_t>) {
-
         var messageTuple = unsafePointer.pointee.message
 
         let message = withUnsafePointer(&messageTuple) { (unsafeTuplePointer) -> String in
-
             let charPointer = unsafeBitCast(_: unsafeTuplePointer, to: UnsafePointer<CChar>.self)
-
-            let string = String(cString:charPointer)
-
-            return string
+            return String(cString: charPointer)
         }
 
         self.domain = unsafePointer.pointee.domain

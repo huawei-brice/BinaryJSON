@@ -1,9 +1,9 @@
 //
-//  Extensions.swift
+//  BSONConvertible.swift
 //  BinaryJSON
 //
-//  Created by Alsey Coleman Miller on 12/15/15.
-//  Copyright © 2015 PureSwift. All rights reserved.
+//  Created by Dan Appel on 06/27/16.
+//  Copyright © 2016 Dan Appel. All rights reserved.
 //
 
 import Foundation
@@ -28,7 +28,7 @@ extension BSON: BSONConvertible {
 
 extension String: BSONConvertible {
     public var bson: BSON { return .infer(self) }
-    
+
     public init(bson: BSON) throws {
         self = try bson.get()
     }
@@ -36,7 +36,7 @@ extension String: BSONConvertible {
 
 extension Int: BSONConvertible {
     public var bson: BSON { return .infer(self) }
-    
+
     public init(bson: BSON) throws {
         self = try bson.get()
     }
@@ -44,7 +44,7 @@ extension Int: BSONConvertible {
 
 extension Double: BSONConvertible {
     public var bson: BSON { return .infer(self) }
-    
+
     public init(bson: BSON) throws {
         self = try bson.get()
     }
@@ -52,7 +52,7 @@ extension Double: BSONConvertible {
 
 extension Bool: BSONConvertible {
     public var bson: BSON { return .infer(self) }
-    
+
     public init(bson: BSON) throws {
         self = try bson.get()
     }
@@ -62,7 +62,7 @@ extension Binary: BSONConvertible {
     public var bson: BSON {
         return .infer(self)
     }
-    
+
     public init(bson: BSON) throws {
         self = try bson.get()
     }
@@ -72,7 +72,7 @@ extension ObjectID: BSONConvertible {
     public var bson: BSON {
         return .infer(self)
     }
-    
+
     public init(bson: BSON) throws {
         self = try bson.get()
     }
@@ -93,7 +93,7 @@ extension RegularExpression: BSONConvertible {
     public var bson: BSON {
         return .infer(self)
     }
-    
+
     public init(bson: BSON) throws {
         self = try bson.get()
     }
@@ -103,7 +103,7 @@ extension Code: BSONConvertible {
     public var bson: BSON {
         return .infer(self)
     }
-    
+
     public init(bson: BSON) throws {
         self = try bson.get()
     }
@@ -113,7 +113,7 @@ extension Timestamp: BSONConvertible {
     public var bson: BSON {
         return .infer(self)
     }
-    
+
     public init(bson: BSON) throws {
         self = try bson.get()
     }

@@ -120,11 +120,11 @@ func sampleDocument() -> [String:BSON] {
         document["objectID"] = .infer(ObjectID())
         document["data"] = .infer(Binary(data: Data([] + "test".utf8)))
         document["null"] = .null
-        document["regex"] = .infer(RegularExpression("pattern", options: ""))
+        document["regex"] = .infer(RegularExpression(pattern: "pattern", options: ""))
         document["code"] = .infer(Code("js code"))
         document["code with scope"] = .infer(Code("JS code", scope: ["myVariable": "value"]))
         document["date"] = .infer(NSDate())
-        document["timestamp"] = .infer(Timestamp(time: 10, oridinal: 1))
+        document["timestamp"] = .infer(Timestamp(time: 10, ordinal: 1))
         document["minkey"] = .infer(Key.min)
         document["maxkey"] = .infer(Key.max)
     }

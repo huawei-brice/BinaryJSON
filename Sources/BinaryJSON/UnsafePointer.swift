@@ -104,7 +104,7 @@ public final class BSONAppender {
             try appender1(bson_append_timeval, &time)
 
         case let .timestamp(timestamp):
-            try appender2(bson_append_timestamp, timestamp.time, timestamp.oridinal)
+            try appender2(bson_append_timestamp, timestamp.time, timestamp.ordinal)
 
         case let .binary(binary):
             try appender3(bson_append_binary, binary.subtype.cValue, binary.data.bytes, UInt32(binary.data.bytes.count))
@@ -297,7 +297,7 @@ public final class BSONIterator: IteratorProtocol, Sequence {
 
             let options = String(validatingUTF8: optionsBuffer)!
             let pattern = String(validatingUTF8: patternBuffer)!
-            let regex = RegularExpression(pattern, options: options)
+            let regex = RegularExpression(pattern: pattern, options: options)
 
             return (key, regex.bson)
 
@@ -345,7 +345,7 @@ public final class BSONIterator: IteratorProtocol, Sequence {
 
             bson_iter_timestamp(pointer, timePointer, incrementPointer)
 
-            let timestamp = Timestamp(time: timePointer.pointee, oridinal: incrementPointer.pointee)
+            let timestamp = Timestamp(time: timePointer.pointee, ordinal: incrementPointer.pointee)
             return (key, timestamp.bson)
 
         case BSON_TYPE_MAXKEY:
