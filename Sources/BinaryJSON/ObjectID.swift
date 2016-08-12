@@ -71,7 +71,7 @@ public extension BSON.ObjectID {
     
     public var rawValue: String {
         
-        let stringPointer = UnsafeMutablePointer<CChar>(allocatingCapacity:25)
+        let stringPointer = UnsafeMutablePointer<CChar>.allocate(capacity: 25)
         
         var objectID = internalValue
         

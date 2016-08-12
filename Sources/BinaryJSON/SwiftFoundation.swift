@@ -20,7 +20,7 @@ public extension timeval {
         
         guard gettimeofday(&timeStamp, nil) == 0 else {
             
-            if let error = POSIXError.fromErrorNumber as? ErrorProtocol {
+            if let error = POSIXErrorCode.fromErrorNumber as? Error {
                 throw error
             } else {
                 fatalError("Make an issue if this hits - fixing this is a TODO but I may forget")
@@ -86,14 +86,14 @@ public extension tm {
         
         let timePointer = gmtime(&seconds)
         
-        self = timePointer.pointee
+        self = (timePointer?.pointee)!
     }
 }
 
-public extension POSIXError {
+public extension POSIXErrorCode {
     
     /// Creates error from C ```errno```.
-    static var fromErrorNumber: POSIXError? { return self.init(rawValue: errno) }
+    static var fromErrorNumber: POSIXErrorCode? { return self.init(rawValue: errno) }
 }
 
 #if os(Linux)
@@ -167,7 +167,7 @@ public struct Date: Equatable, Comparable, CustomStringConvertible {
     }
     
     /// Returns the difference between two dates.
-    public func timeIntervalSinceDate(date: Date) -> TimeInterval {
+    public func timeIntervalSinceDate(_ date: Date) -> TimeInterval {
         
         return self - date
     }

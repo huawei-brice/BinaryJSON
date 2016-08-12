@@ -37,13 +37,13 @@ public extension BSON {
     /// Creates an unsafe pointer of a BSON document for use with the C API.
     ///
     /// Make sure to use ```bson_destroy``` clean up the allocated BSON document.
-    static func unsafePointerFromDocument(document: BSON.Document) -> UnsafeMutablePointer<bson_t>? {
+    static func unsafePointerFromDocument(_ document: BSON.Document) -> UnsafeMutablePointer<bson_t>? {
         
         let documentPointer = bson_new()
         
         for (key, value) in document {
             
-            guard appendValue(documentPointer, key: key, value: value) == true
+            guard appendValue(documentPointer!, key: key, value: value) == true
                 else { return nil }
         }
         
@@ -53,7 +53,7 @@ public extension BSON {
     /// Creates a ```BSON.Document``` from an unsafe pointer. 
     ///
     /// - Precondition: The ```bson_t``` must be valid.
-    static func documentFromUnsafePointer(documentPointer: UnsafePointer<bson_t>) -> BSON.Document? {
+    static func documentFromUnsafePointer(_ documentPointer: UnsafePointer<bson_t>) -> BSON.Document? {
         
         var iterator = bson_iter_t()
         
@@ -62,7 +62,7 @@ public extension BSON {
         
         var document = BSON.Document()
         
-        guard iterate(&document, iterator: &iterator) == true
+        guard iterate(&document, iterator: iterator) == true
             else { return nil }
         
         return document
@@ -72,82 +72,82 @@ public extension BSON {
 private extension BSON {
     
     /// Appends a  ```BSON.Value``` to a document pointer. Returns false for if an error ocurred (over max limit).
-    static func appendValue(documentPointer: UnsafeMutablePointer<bson_t>, key: String, value: BSON.Value) -> Bool {
+    static func appendValue(_ documentPointer: UnsafeMutablePointer<bson_t>, key: String, value: BSON.Value) -> Bool {
         
         let keyLength = Int32(key.utf8.count)
         
         switch value {
             
-        case .Null:
+        case .null:
             
             return bson_append_null(documentPointer, key, keyLength)
             
-        case let .String(string):
+        case let .string(string):
             
             let stringLength = Int32(string.utf8.count)
             
             return bson_append_utf8(documentPointer, key, keyLength, string, stringLength)
             
-        case let .Number(number):
+        case let .number(number):
             
             switch number {
-            case let .Boolean(value): return bson_append_bool(documentPointer, key, keyLength, value)
-            case let .Integer32(value): return bson_append_int32(documentPointer, key, keyLength, value)
-            case let .Integer64(value): return bson_append_int64(documentPointer, key, keyLength, value)
-            case let .Double(value): return bson_append_double(documentPointer, key, keyLength, value)
+            case let .boolean(value): return bson_append_bool(documentPointer, key, keyLength, value)
+            case let .integer32(value): return bson_append_int32(documentPointer, key, keyLength, value)
+            case let .integer64(value): return bson_append_int64(documentPointer, key, keyLength, value)
+            case let .double(value): return bson_append_double(documentPointer, key, keyLength, value)
             }
             
-        case let .Date(date):
+        case let .date(date):
             
             var time = timeval(timeInterval: date.timeIntervalSince1970)
             
             return bson_append_timeval(documentPointer, key, keyLength, &time)
             
-        case let .Timestamp(timestamp):
+        case let .timestamp(timestamp):
             
             return bson_append_timestamp(documentPointer, key, keyLength, timestamp.time, timestamp.oridinal)
             
-        case let .Binary(binary):
+        case let .binary(binary):
             
             let subtype: bson_subtype_t
             
             switch binary.subtype {
                 
-            case .Generic: subtype = BSON_SUBTYPE_BINARY
+            case .generic: subtype = BSON_SUBTYPE_BINARY
                 
-            case .Function: subtype = BSON_SUBTYPE_FUNCTION
+            case .function: subtype = BSON_SUBTYPE_FUNCTION
                 
-            case .Old: subtype = BSON_SUBTYPE_BINARY_DEPRECATED
+            case .old: subtype = BSON_SUBTYPE_BINARY_DEPRECATED
                 
-            case .UUIDOld: subtype = BSON_SUBTYPE_UUID_DEPRECATED
+            case .uuidOld: subtype = BSON_SUBTYPE_UUID_DEPRECATED
                 
-            case .UUID: subtype = BSON_SUBTYPE_UUID
+            case .uuid: subtype = BSON_SUBTYPE_UUID
                 
-            case .MD5: subtype = BSON_SUBTYPE_MD5
+            case .md5: subtype = BSON_SUBTYPE_MD5
                 
-            case .User: subtype = BSON_SUBTYPE_USER
+            case .user: subtype = BSON_SUBTYPE_USER
             }
             
             return bson_append_binary(documentPointer, key, keyLength, subtype, binary.data.byteValue, UInt32(binary.data.byteValue.count))
             
-        case let .RegularExpression(regularExpression):
+        case let .regularExpression(regularExpression):
             
             return bson_append_regex(documentPointer, key, keyLength, regularExpression.pattern, regularExpression.options)
             
-        case let .MaxMinKey(keyType):
+        case let .maxMinKey(keyType):
             
             switch keyType {
                 
-            case .Maximum:
+            case .maximum:
                 
                 return bson_append_maxkey(documentPointer, key, keyLength)
                 
-            case .Minimum:
+            case .minimum:
                 
                 return bson_append_minkey(documentPointer, key, keyLength)
             }
             
-        case let .Code(code):
+        case let .code(code):
             
             if let scope = code.scope {
                 
@@ -161,13 +161,13 @@ private extension BSON {
                 return bson_append_code(documentPointer, key, keyLength, code.code)
             }
             
-        case let .ObjectID(objectID):
+        case let .objectID(objectID):
             
             var oid = bson_oid_t(bytes: objectID.byteValue)
             
             return bson_append_oid(documentPointer, key, keyLength, &oid)
             
-        case let .Document(childDocument):
+        case let .document(childDocument):
             
             let childDocumentPointer = bson_new()
             
@@ -178,13 +178,13 @@ private extension BSON {
         
             for (childKey, childValue) in childDocument {
                 
-                guard appendValue(childDocumentPointer, key: childKey, value: childValue)
+                guard appendValue(childDocumentPointer!, key: childKey, value: childValue)
                     else { return false }
             }
             
             return bson_append_document_end(documentPointer, childDocumentPointer)
             
-        case let .Array(array):
+        case let .array(array):
             
             let childPointer = bson_new()
             
@@ -197,7 +197,7 @@ private extension BSON {
                 
                 let indexKey = "\(index)"
                 
-                guard appendValue(childPointer, key: indexKey, value: subvalue)
+                guard appendValue(childPointer!, key: indexKey, value: subvalue)
                     else { return false }
             }
             
@@ -206,14 +206,15 @@ private extension BSON {
     }
     
     /// iterate and append values to document
-    static func iterate( document: inout BSON.Document, iterator: inout bson_iter_t) -> Bool {
+    static func iterate( _ document: inout BSON.Document, iterator: bson_iter_t) -> Bool {
         
+        var iterator = iterator
         while bson_iter_next(&iterator) {
             
             // key char buffer should not be changed or freed
             let keyBuffer = bson_iter_key_unsafe(&iterator)
             
-            let key = String(cString:keyBuffer)
+            let key = String(cString:keyBuffer!)
 
             let type = bson_iter_type_unsafe(&iterator)
             
@@ -225,7 +226,7 @@ private extension BSON {
                 
                 let double = bson_iter_double_unsafe(&iterator)
                 
-                value = .Number(.Double(double))
+                value = .number(.double(double))
                 
             case BSON_TYPE_UTF8:
                 
@@ -233,9 +234,9 @@ private extension BSON {
                 
                 let buffer = bson_iter_utf8_unsafe(&iterator, &length)
                 
-                let string = String(cString:buffer)
+                let string = String(cString:buffer!)
 
-                value = .String(string)
+                value = .string(string)
                 
             case BSON_TYPE_DOCUMENT:
                 
@@ -244,10 +245,10 @@ private extension BSON {
                 var childDocument = BSON.Document()
                 
                 guard bson_iter_recurse(&iterator, &childIterator) &&
-                    iterate(&childDocument, iterator: &childIterator)
+                    iterate(&childDocument, iterator: childIterator)
                     else { return false }
                 
-                value = .Document(childDocument)
+                value = .document(childDocument)
                 
             case BSON_TYPE_ARRAY:
                 
@@ -256,12 +257,12 @@ private extension BSON {
                 var childDocument = BSON.Document()
                 
                 guard bson_iter_recurse(&iterator, &childIterator) &&
-                    iterate(&childDocument, iterator: &childIterator)
+                    iterate(&childDocument, iterator: childIterator)
                     else { return false }
                 
                 let array = childDocument.map { (key, value) in return value }
                 
-                value = .Array(array)
+                value = .array(array)
                 
             case BSON_TYPE_BINARY:
                 
@@ -269,7 +270,7 @@ private extension BSON {
                 
                 var length: UInt32 = 0
                 
-                let bufferPointer = UnsafeMutablePointer<UnsafePointer<UInt8>>(allocatingCapacity:1)
+                let bufferPointer = UnsafeMutablePointer<UnsafePointer<UInt8>?>.allocate(capacity: 1)
 
                 bson_iter_binary(&iterator, &subtype, &length, bufferPointer)
                 
@@ -283,20 +284,20 @@ private extension BSON {
                 
                 switch subtype {
                     
-                case BSON_SUBTYPE_BINARY: binarySubtype = .Generic
-                case BSON_SUBTYPE_FUNCTION: binarySubtype = .Function
-                case BSON_SUBTYPE_BINARY_DEPRECATED: binarySubtype = .Old
-                case BSON_SUBTYPE_UUID_DEPRECATED: binarySubtype = .UUIDOld
-                case BSON_SUBTYPE_UUID: binarySubtype = .UUID
-                case BSON_SUBTYPE_MD5: binarySubtype = .MD5
-                case BSON_SUBTYPE_USER: binarySubtype = .User
+                case BSON_SUBTYPE_BINARY: binarySubtype = .generic
+                case BSON_SUBTYPE_FUNCTION: binarySubtype = .function
+                case BSON_SUBTYPE_BINARY_DEPRECATED: binarySubtype = .old
+                case BSON_SUBTYPE_UUID_DEPRECATED: binarySubtype = .uuidOld
+                case BSON_SUBTYPE_UUID: binarySubtype = .uuid
+                case BSON_SUBTYPE_MD5: binarySubtype = .md5
+                case BSON_SUBTYPE_USER: binarySubtype = .user
                     
-                default: binarySubtype = .User
+                default: binarySubtype = .user
                 }
                 
                 let binary = Binary(data: data, subtype: binarySubtype)
                 
-                value = .Binary(binary)
+                value = .binary(binary)
                 
             // deprecated, no bindings
             case BSON_TYPE_DBPOINTER, BSON_TYPE_UNDEFINED, BSON_TYPE_SYMBOL: value = nil
@@ -306,15 +307,15 @@ private extension BSON {
                 /// should not be freed
                 let oidPointer = bson_iter_oid_unsafe(&iterator)
                 
-                let objectID = ObjectID(byteValue: oidPointer.pointee.bytes)
+                let objectID = ObjectID(byteValue: oidPointer!.pointee.bytes)
                 
-                value = .ObjectID(objectID)
+                value = .objectID(objectID)
                 
             case BSON_TYPE_BOOL:
                 
                 let boolean = bson_iter_bool_unsafe(&iterator)
                 
-                value = .Number(.Boolean(boolean))
+                value = .number(.boolean(boolean))
                 
             case BSON_TYPE_DATE_TIME:
                 
@@ -324,27 +325,27 @@ private extension BSON {
                 
                 let date = Date(timeIntervalSince1970: time.timeIntervalValue)
                 
-                value = .Date(date)
+                value = .date(date)
                 
             case BSON_TYPE_NULL:
                 
-                value = .Null
+                value = .null
                 
             case BSON_TYPE_REGEX:
                 
-                let optionsBufferPointer = UnsafeMutablePointer<UnsafePointer<CChar>>(allocatingCapacity:1)
+                let optionsBufferPointer = UnsafeMutablePointer<UnsafePointer<CChar>?>.allocate(capacity: 1)
 
                 let patternBuffer = bson_iter_regex(&iterator, optionsBufferPointer)
                 
                 let optionsBuffer = optionsBufferPointer.pointee
                 
-                let options = String(cString:optionsBuffer)
+                let options = String(cString:optionsBuffer!)
                 
-                let pattern = String(cString:patternBuffer)
+                let pattern = String(cString:patternBuffer!)
                 
                 let regex = RegularExpression(pattern, options: options)
                 
-                value = .RegularExpression(regex)
+                value = .regularExpression(regex)
                 
             case BSON_TYPE_CODE:
                 
@@ -352,11 +353,11 @@ private extension BSON {
                 
                 let buffer = bson_iter_code_unsafe(&iterator, &length)
                 
-                let codeString = String(cString:buffer)
+                let codeString = String(cString:buffer!)
                 
                 let code = Code(codeString)
                 
-                value = .Code(code)
+                value = .code(code)
                 
             case BSON_TYPE_CODEWSCOPE:
                 
@@ -364,13 +365,13 @@ private extension BSON {
                 
                 var scopeLength: UInt32 = 0
                 
-                let scopeBuffer = UnsafeMutablePointer<UnsafePointer<UInt8>>(allocatingCapacity:1)
+                let scopeBuffer = UnsafeMutablePointer<UnsafePointer<UInt8>?>.allocate(capacity: 1)
                 
-                defer { scopeBuffer.deinitialize(); scopeBuffer.deallocateCapacity(1) }
+                defer { scopeBuffer.deinitialize(); scopeBuffer.deallocate(capacity: 1) }
                 
                 let buffer = bson_iter_codewscope(&iterator, &codeLength, &scopeLength, scopeBuffer)
                 
-                let codeString = String(cString:buffer)
+                let codeString = String(cString:buffer!)
                 
                 var scopeBSON = bson_t()
                 
@@ -382,19 +383,19 @@ private extension BSON {
                 
                 let code = Code(codeString, scope: scopeDocument)
                 
-                value = .Code(code)
+                value = .code(code)
                 
             case BSON_TYPE_INT32:
                 
                 let integer = bson_iter_int32_unsafe(&iterator)
                 
-                value = .Number(.Integer32(integer))
+                value = .number(.integer32(integer))
                 
             case BSON_TYPE_INT64:
                 
                 let integer = bson_iter_int64_unsafe(&iterator)
                 
-                value = .Number(.Integer64(integer))
+                value = .number(.integer64(integer))
                 
             case BSON_TYPE_TIMESTAMP:
                 
@@ -406,15 +407,15 @@ private extension BSON {
                 
                 let timestamp = Timestamp(time: time, oridinal: increment)
                 
-                value = .Timestamp(timestamp)
+                value = .timestamp(timestamp)
                 
             case BSON_TYPE_MAXKEY:
                 
-                value = .MaxMinKey(.Maximum)
+                value = .maxMinKey(.maximum)
                 
             case BSON_TYPE_MINKEY:
                 
-                value = .MaxMinKey(.Minimum)
+                value = .maxMinKey(.minimum)
                 
             default: fatalError("Case \(type) not implemented")
             }

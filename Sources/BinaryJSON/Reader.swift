@@ -36,7 +36,7 @@ public extension BSON {
             guard valuePointer != nil else { return nil }
             
             // convert to document
-            guard let document = BSON.documentFromUnsafePointer(UnsafeMutablePointer<bson_t>(valuePointer))
+            guard let document = BSON.documentFromUnsafePointer(UnsafeMutablePointer<bson_t>(valuePointer!))
                 else { return nil }
             
             return document
@@ -62,7 +62,7 @@ public extension Data {
     /// Initializes ```Data``` from an unsafe byte pointer.
     ///
     /// - Precondition: The pointer  points to a type exactly a byte long.
-    static func fromBytePointer<T: Any>(pointer: UnsafePointer<T>, length: Int) -> Data {
+    static func fromBytePointer<T: Any>(_ pointer: UnsafePointer<T>, length: Int) -> Data {
         
         assert(sizeof(pointer.pointee.dynamicType) == sizeof(Byte.self), "Cannot create array of bytes from pointer to \(pointer.pointee.dynamicType) because the type is larger than a single byte.")
         

@@ -17,7 +17,7 @@ import CBSON
 public extension BSON {
     
     // BSON Error
-    public struct Error: ErrorProtocol {
+    public struct BSONError: Error {
         
         /// The internal library domain of the error.
         let domain: UInt32
@@ -33,7 +33,7 @@ public extension BSON {
         /// - Precondition: The unsafe pointer is not ```nil```.
         public init(unsafePointer: UnsafePointer<bson_error_t>) {
             
-            assert(unsafePointer != nil, "Trying to create Error from nil pointer")
+            //assert(unsafePointer != nil, "Trying to create Error from nil pointer")
             
             var messageTuple = unsafePointer.pointee.message
             

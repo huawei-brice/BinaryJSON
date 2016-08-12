@@ -13,7 +13,7 @@ import CBSON
 public extension BSON {
     
     /// Converts the BSON document to JSON.
-    static func toJSONString(document: BSON.Document) -> String {
+    static func toJSONString(_ document: BSON.Document) -> String {
         
        guard let pointer = unsafePointerFromDocument(document)
             else { fatalError("Could not convert document to unsafe pointer") }
@@ -24,7 +24,7 @@ public extension BSON {
     }
     
     /// Converts the BSON pointer to JSON.
-    static func toJSONString(unsafePointer: UnsafePointer<bson_t>) -> String {
+    static func toJSONString(_ unsafePointer: UnsafePointer<bson_t>) -> String {
         
         var length = 0
         
@@ -32,24 +32,24 @@ public extension BSON {
         
         defer { bson_free(stringBuffer) }
         
-        let string = String(cString:stringBuffer)
+        let string = String(cString:stringBuffer!)
         
         return string
     }
 
-    static func pointerFromJSONString(json: String) throws -> UnsafeMutablePointer<bson_t> {
+    static func pointerFromJSONString(_ json: String) throws -> UnsafeMutablePointer<bson_t> {
 
         var error = bson_error_t()
         let bson = bson_new_from_json(json, -1, &error)
 
         guard error.code == 0 else {
-            throw BSON.Error(unsafePointer: &error)
+            throw BSONError(unsafePointer: &error)
         }
 
-        return bson
+        return bson!
     }
 
-    static func fromJSONString(json: String) throws -> BSON.Document {
+    static func fromJSONString(_ json: String) throws -> BSON.Document {
 
         let bson = try BSON.pointerFromJSONString(json)
 

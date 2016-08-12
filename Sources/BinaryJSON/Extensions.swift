@@ -28,7 +28,7 @@ public protocol BSONDecodable {
 
 extension String: BSONEncodable {
     
-    public func toBSON() -> BSON.Value { return .String(self) }
+    public func toBSON() -> BSON.Value { return .string(self) }
 }
 
 extension String: BSONDecodable {
@@ -43,7 +43,7 @@ extension String: BSONDecodable {
 
 extension Int32: BSONEncodable {
     
-    public func toBSON() -> BSON.Value { return .Number(.Integer32(self)) }
+    public func toBSON() -> BSON.Value { return .number(.integer32(self)) }
 }
 
 extension Int32: BSONDecodable {
@@ -58,7 +58,7 @@ extension Int32: BSONDecodable {
 
 extension Int64: BSONEncodable {
     
-    public func toBSON() -> BSON.Value { return .Number(.Integer64(self)) }
+    public func toBSON() -> BSON.Value { return .number(.integer64(self)) }
 }
 
 extension Int64: BSONDecodable {
@@ -73,7 +73,7 @@ extension Int64: BSONDecodable {
 
 extension Double: BSONEncodable {
     
-    public func toBSON() -> BSON.Value { return .Number(.Double(self)) }
+    public func toBSON() -> BSON.Value { return .number(.double(self)) }
 }
 
 extension Double: BSONDecodable {
@@ -88,7 +88,7 @@ extension Double: BSONDecodable {
 
 extension Bool: BSONEncodable {
     
-    public func toBSON() -> BSON.Value { return .Number(.Boolean(self)) }
+    public func toBSON() -> BSON.Value { return .number(.boolean(self)) }
 }
 
 extension Bool: BSONDecodable {
@@ -118,7 +118,7 @@ public extension Collection where Iterator.Element: BSONEncodable {
             BSONArray.append(BSONValue)
         }
         
-        return .Array(BSONArray)
+        return .array(BSONArray)
     }
 }
 
@@ -138,7 +138,7 @@ public extension Dictionary where Value: BSONEncodable, Key: StringLiteralConver
             document[keyString] = BSONValue
         }
         
-        return .Document(document)
+        return .document(document)
     }
 }
 
@@ -147,7 +147,7 @@ public extension Dictionary where Value: BSONEncodable, Key: StringLiteralConver
 public extension BSONDecodable {
     
     /// Decodes from an array of BSON values.
-    static func fromBSON(BSONArray: BSON.Array) -> [Self]? {
+    static func fromBSON(_ BSONArray: BSON.Array) -> [Self]? {
         
         var BSONDecodables = [Self]()
         
@@ -192,45 +192,45 @@ public extension RawRepresentable where RawValue: BSONDecodable {
 
 extension BSON.Value: StringLiteralConvertible {
     public init(unicodeScalarLiteral value: Swift.String) {
-        self = .String(value)
+        self = .string(value)
     }
 
     public init(extendedGraphemeClusterLiteral value: Swift.String) {
-        self = .String(value)
+        self = .string(value)
     }
 
     public init(stringLiteral value: StringLiteralType) {
-        self = .String(value)
+        self = .string(value)
     }
 }
 
 extension BSON.Value: NilLiteralConvertible {
     public init(nilLiteral value: Void) {
-        self = .Null
+        self = .null
     }
 }
 
 extension BSON.Value: BooleanLiteralConvertible {
     public init(booleanLiteral value: BooleanLiteralType) {
-        self = .Number(.Boolean(value))
+        self = .number(.boolean(value))
     }
 }
 
 extension BSON.Value: IntegerLiteralConvertible {
     public init(integerLiteral value: IntegerLiteralType) {
-        self = .Number(.Integer32(Int32(value)))
+        self = .number(.integer32(Int32(value)))
     }
 }
 
 extension BSON.Value: FloatLiteralConvertible {
     public init(floatLiteral value: FloatLiteralType) {
-        self = .Number(.Double(Double(value)))
+        self = .number(.double(Double(value)))
     }
 }
 
 extension BSON.Value: ArrayLiteralConvertible {
     public init(arrayLiteral elements: BSON.Value...) {
-        self = .Array(elements)
+        self = .array(elements)
     }
 }
 
@@ -242,6 +242,6 @@ extension BSON.Value: DictionaryLiteralConvertible {
             dictionary[pair.0] = pair.1
         }
 
-        self = .Document(dictionary)
+        self = .document(dictionary)
     }
 }
